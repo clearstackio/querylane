@@ -1,0 +1,46 @@
+<%# The search form and box. Outside the results frame, so typing never loses the caret.
+    Locals: result, id, url, input_id, label, placeholder, mask, button_id, options, help, extra. %>
+<%= form_with url: url, method: :post, id: "#{id}-form", class: "querylane-form",
+      data: {turbo: true, turbo_frame: "#{id}-results", controller: "querylane--box",
+             querylane__box_debounce_value: Querylane.configuration.debounce_ms,
+             querylane__box_mask_value: mask.to_s,
+             querylane__box_frame_value: "#{id}-results",
+             querylane__box_min_value: result.definition.min_text_length.to_i,
+             action: "submit->querylane--box#submitted turbo:before-cache@document->querylane--box#forget keydown@document->querylane--box#shortcut"} do %>
+  <%# The default button: Enter in the box searches (Options comes first in the box). %>
+  <button type="submit" hidden tabindex="-1" aria-hidden="true"></button>
+  <%= hidden_field_tag :revision, result.revision, id: nil, data: {querylane__box_target: "revision"} %>
+  <div class="ql-box" id="<%= id %>-box" data-querylane--box-target="box" data-action="querylane:set-query->querylane--box#setQuery">
+    <svg class="ql-box-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <div class="ql-box-field">
+      <div class="ql-box-overlay" aria-hidden="true" data-querylane--box-target="overlay"></div>
+      <label class="visually-hidden" for="<%= input_id %>"><%= label %></label>
+      <input type="text" id="<%= input_id %>" name="<%= Querylane.configuration.param_name %>" value="<%= result.query %>"
+             class="ql-box-input" placeholder="<%= placeholder %>" autocomplete="off" autocapitalize="off" spellcheck="false"
+             aria-describedby="<%= [("#{id}-help-text" if help), "#{id}-error"].compact.join(" ") %>"
+             data-querylane--box-target="input"
+             data-action="input->querylane--box#typed keydown->querylane--box#keys scroll->querylane--box#paint select->querylane--box#paint click->querylane--box#paint compositionstart->querylane--box#compose compositionend->querylane--box#composed">
+    </div>
+    <span class="ql-box-busy-label" aria-hidden="true"><%= t("querylane.states.searching") %></span>
+    <button type="button" class="ql-box-clear" aria-label="<%= t("querylane.box.clear") %>" data-action="querylane--box#clear">&times;</button>
+    <%= extra %>
+    <% if result.definition.saved_store %>
+      <%# Filled star only while the box holds one of the user's saved searches. %>
+      <button type="button" class="ql-box-saved" popovertarget="<%= id %>-saved" aria-pressed="<%= result.saved_active? %>"
+              data-querylane--box-target="saved">
+        <span class="ql-star-off" aria-hidden="true">☆</span><span class="ql-star-on" aria-hidden="true">★</span> <%= t("querylane.saved.button") %>
+      </button>
+    <% end %>
+    <% if options %>
+      <%# Opens the panel; while it is open, a click closes it (a plain search). %>
+      <button type="submit" name="options" value="1" class="ql-box-options" aria-expanded="<%= result.options_open? %>" aria-controls="<%= id %>-options"
+              data-querylane--box-target="options" data-action="querylane--box#toggleOptions">
+        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 5h8M15 5h2M3 10h2M9 10h8M3 15h10M17 15h0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="13" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="7" cy="10" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="15" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <%= t("querylane.box.options") %>
+      </button>
+    <% end %>
+    <button type="submit" class="btn btn-primary ql-box-submit" <%= %(id="#{button_id}").html_safe if button_id %>><%= t("querylane.box.search") %></button>
+  </div>
+  <% if help %><p class="ql-box-help" id="<%= id %>-help-text"><%= help %></p><% end %>
+  <div class="ql-hint" role="status" hidden data-querylane--box-target="hint"><%= t("querylane.states.short", count: result.definition.min_text_length) if result.definition.min_text_length %></div>
+<% end %>

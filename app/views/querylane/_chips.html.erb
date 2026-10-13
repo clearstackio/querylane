@@ -1,0 +1,15 @@
+<%# "Searching for" chips. × removes that term (server rewrites the query). Locals: result, id. %>
+<% if result.chips.any? %>
+  <div class="ql-chips">
+    <span class="ql-chips-label"><%= t("querylane.chips.searching_for") %></span>
+    <% result.chips.each do |chip| %>
+      <span class="ql-chip"><%= chip.label %><button type="submit" form="<%= id %>-form" name="remove" value="<%= chip.index %>"
+        class="ql-chip-remove" aria-label="<%= t("querylane.chips.remove", label: chip.label) %>">&times;</button></span>
+      <% chip.alternatives.each do |alternative| %>
+        <button type="submit" form="<%= id %>-form" name="instead" value="<%= chip.index %>.<%= alternative.index %>" class="ql-link"><%= alternative.label %></button>
+      <% end %>
+    <% end %>
+    <%= render "querylane/help", definition: result.definition, id: id %>
+    <button type="submit" form="<%= id %>-form" name="clear" value="1" class="ql-link"><%= t("querylane.chips.clear") %></button>
+  </div>
+<% end %>

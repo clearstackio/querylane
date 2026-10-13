@@ -1,0 +1,28 @@
+<%# Count, sort, page size and pager; controls belong to the search form. Locals: result, id, per_id. %>
+<div class="ql-toolbar">
+  <div class="ql-count">
+    <%= case result.total_kind
+        when :estimated then t("querylane.toolbar.about", count: number_with_delimiter(result.total))
+        when :capped then t("querylane.toolbar.capped", count: number_with_delimiter(result.total))
+        else t("querylane.toolbar.records", count: result.total)
+        end %>
+    <% if result.merged %><span class="ql-count-note"><%= t("querylane.toolbar.merged") %></span><% end %>
+  </div>
+  <div class="ql-toolbar-controls">
+    <label class="ql-control"><%= t("querylane.toolbar.sort") %>
+      <select name="sort" form="<%= id %>-form" class="form-select form-select-sm">
+        <% result.definition.sorts.each do |sort| %>
+          <option value="<%= sort.key %>" <%= "selected" if sort == result.sort %>><%= sort.label %></option>
+        <% end %>
+      </select>
+    </label>
+    <label class="ql-control"><%= t("querylane.toolbar.show") %>
+      <select name="per" form="<%= id %>-form" class="form-select form-select-sm" <%= %(id="#{per_id}").html_safe if per_id %>>
+        <% result.definition.per_options.each do |per| %>
+          <option value="<%= per %>" <%= "selected" if per == result.per %>><%= per %></option>
+        <% end %>
+      </select>
+    </label>
+    <%= render "querylane/pager", result: result, id: id %>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# StandardRB for Ruby, FracturedJSON for JSON. `bin/lint fix` applies fixes.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# package-lock.json is npm's file; the dummy app's JSON is fixture data.
+json_files=$(git ls-files '*.json' | grep -v -e '^spec/dummy/' -e 'package-lock.json$' || true)
+
+if [[ "${1:-}" == "fix" ]]; then
+  bundle exec standardrb --fix
+  for file in $json_files; do fjson --comments preserve --trailing-commas "$file" -o "$file"; done
+  exit 0
+fi
+
+bundle exec standardrb
+status=0
+for file in $json_files; do
+  if ! diff -q <(fjson --comments preserve --trailing-commas "$file") "$file" >/dev/null; then
+    echo "fracturedjson: $file is not formatted (bin/lint fix)"
+    status=1
+  fi
+done
+exit $status

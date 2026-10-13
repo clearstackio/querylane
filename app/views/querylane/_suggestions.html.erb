@@ -1,0 +1,47 @@
+<%# Suggestions: operator completions, people (groups), go-to. Options carry
+    no query text: a completion holds only its word, people their own Action.
+    Locals: result, presenter, groups, id. %>
+<turbo-frame id="<%= id %>-list" class="ql-suggest-list" role="listbox" data-revision="<%= result.revision %>">
+  <% if result.completions.any? %>
+    <div role="group" aria-labelledby="<%= id %>-operators">
+      <div class="ql-suggest-heading" id="<%= id %>-operators"><%= t("querylane.suggest.operators") %></div>
+      <% result.completions.each_with_index do |completion, position| %>
+        <div role="option" id="<%= id %>-operator-<%= position %>" class="ql-suggest-option" data-querylane-complete="<%= completion.word %>">
+          <code class="ql-suggest-word"><%= completion.word %></code>
+          <span class="ql-suggest-detail"><%= completion.hint %></span>
+          <% if position.zero? %><span class="ql-suggest-aside"><%= t("querylane.suggest.complete") %></span><% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+  <% if groups.any? || %i[empty unavailable].include?(result.state) %>
+    <div role="group" aria-labelledby="<%= id %>-people">
+      <div class="ql-suggest-heading" id="<%= id %>-people"><%= t("querylane.suggest.people") %></div>
+      <% if result.state == :unavailable %>
+        <div class="ql-suggest-note"><%= t("querylane.suggest.unavailable") %></div>
+      <% elsif groups.empty? %>
+        <div class="ql-suggest-note"><%= t("querylane.suggest.none") %></div>
+      <% end %>
+      <% groups.each_with_index do |group, position| %>
+        <% suggestion = presenter.suggestion(group) %>
+        <div role="option" id="<%= id %>-person-<%= position %>" class="ql-suggest-option ql-suggest-person">
+          <span class="ql-suggest-title"><%= presenter.title(group) %></span>
+          <span class="ql-suggest-subtitle"><%= presenter.subtitle(group) %></span>
+          <span class="ql-suggest-detail"><%= suggestion.detail %></span>
+          <% if suggestion.badge %><span class="ql-suggest-aside ql-badge ql-badge-<%= suggestion.badge.tone %>"><%= suggestion.badge.text %></span><% end %>
+          <% if suggestion.action %><div hidden><%= render "querylane/outcome", outcome: suggestion.action %></div><% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+  <div role="group" aria-labelledby="<%= id %>-go">
+    <div class="ql-suggest-heading" id="<%= id %>-go"><%= t("querylane.suggest.go_to") %></div>
+    <div role="option" id="<%= id %>-search-all" class="ql-suggest-option ql-suggest-go" data-querylane-go="search">
+      <%= result.typed.present? ? t("querylane.suggest.search_all", text: result.typed) : t("querylane.suggest.search_all_empty") %>
+      <span class="ql-suggest-aside"><kbd>Enter</kbd></span>
+    </div>
+    <div role="option" id="<%= id %>-open-options" class="ql-suggest-option ql-suggest-go" data-querylane-go="options">
+      <%= t("querylane.suggest.options") %>
+    </div>
+  </div>
+</turbo-frame>

@@ -1,0 +1,3 @@
+<h1>People</h1>
+<%= querylane_form @result, id: :people, url: search_path, input_id: "people_query", label: "Search Text", mask: '\b\d{9}\b' %>
+<%= render "searches/results", result: @result %>

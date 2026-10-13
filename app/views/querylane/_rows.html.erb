@@ -1,0 +1,13 @@
+<%# Grouped records drawn from a Querylane::Presenter. Locals: presenter. %>
+<% columns = presenter.columns %>
+<div class="ql-record ql-record-head" aria-hidden="true">
+  <% columns.each do |column| %>
+    <div class="ql-lane" style="<%= "width: #{column.width}px" if column.width %>"><%= column.label %></div>
+  <% end %>
+  <% if presenter.status_label %><div class="ql-lane ql-lane-status"><%= presenter.status_label %></div><% end %>
+  <div class="ql-lane ql-lane-flags"></div>
+  <div class="ql-lane ql-lane-outcome"><%= presenter.outcome_label %></div>
+</div>
+<% presenter.groups.each do |group| %>
+  <%= render "querylane/group", presenter: presenter, group: group, columns: columns %>
+<% end %>

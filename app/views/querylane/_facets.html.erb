@@ -1,0 +1,30 @@
+<%# Facets. A value is a submit button with checkbox semantics: it asks the server
+    to tick or untick that value in the query text. Locals: result, id. %>
+<aside class="ql-facets" aria-label="Filters">
+  <% result.facets.each do |facet| %>
+    <section class="ql-facet">
+      <h3 class="ql-facet-title"><%= facet.label %></h3>
+      <% if facet.failed %>
+        <div class="ql-facet-note"><%= t("querylane.facets.unavailable") %></div>
+      <% else %>
+        <% shown = facet.values.select { |value| value.ticked || value.count.positive? } %>
+        <% if facet.search && shown.size > facet.show.to_i %>
+          <input type="search" class="form-control form-control-sm ql-facet-find" autocomplete="off"
+                 aria-label="<%= t("querylane.facets.find_label", facet: facet.label) %>" placeholder="<%= t("querylane.facets.find", facet: facet.label.downcase) %>"
+                 data-action="input->querylane--results#findValue">
+        <% end %>
+        <% shown.each_with_index do |value, position| %>
+          <% beyond = facet.show && position >= facet.show && !value.ticked %>
+          <button type="submit" form="<%= id %>-form" name="toggle" value="<%= facet.key %>:<%= value.value %>"
+                  class="ql-facet-value" role="checkbox" aria-checked="<%= value.ticked %>" <%= "hidden" if beyond %>
+                  <%= tag.attributes(data: {querylane_beyond: (true if beyond)}) %>>
+            <span class="ql-check" aria-hidden="true"></span>
+            <span class="ql-facet-label"><%= value.label %></span>
+            <span class="ql-facet-count"><%= "~" if facet.approximate %><%= number_with_delimiter(value.count) %></span>
+          </button>
+        <% end %>
+      <% end %>
+    </section>
+  <% end %>
+  <p class="ql-facet-note"><%= t("querylane.facets.note") %></p>
+</aside>

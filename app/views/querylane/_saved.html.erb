@@ -1,0 +1,31 @@
+<%# Saved searches (M12): a native popover opened by the box's Saved button.
+    Name and Save belong to the search form; choosing one sends its id and the
+    server rewrites the box. Locals: result, id. %>
+<div id="<%= id %>-saved" popover class="ql-saved">
+  <div class="ql-saved-head">
+    <label for="<%= id %>-saved-name"><%= t("querylane.saved.title") %></label>
+    <input type="text" id="<%= id %>-saved-name" name="saved_name" form="<%= id %>-form" maxlength="80" autocomplete="off"
+           data-action="keydown.enter->querylane--results#enter" data-querylane-enter="<%= id %>-saved-submit"
+           class="form-control form-control-sm" placeholder="<%= t("querylane.saved.name") %>" <%= "disabled" if result.save_refusal || result.query.blank? %>>
+    <button type="submit" form="<%= id %>-form" name="save_search" value="1" class="btn btn-sm btn-primary" id="<%= id %>-saved-submit"
+            <%= "disabled" if result.save_refusal || result.query.blank? %>><%= t("querylane.saved.save") %></button>
+  </div>
+  <% if (refusal = result.save_refusal) %>
+    <p class="ql-saved-refusal">
+      <strong><%= t("querylane.saved.cannot") %></strong>
+      <%= t("querylane.saved.refusal", value: refusal.value, operator: refusal.operator.downcase) %>
+      <%= refusal.rest.present? ? t("querylane.saved.refusal_rest", rest: refusal.rest) : t("querylane.saved.refusal_alone") %>
+    </p>
+  <% end %>
+  <div class="ql-saved-heading"><%= t("querylane.saved.yours") %></div>
+  <% if result.saved_searches.empty? %>
+    <p class="ql-saved-none"><%= t("querylane.saved.none") %></p>
+  <% end %>
+  <% result.saved_searches.each do |saved| %>
+    <button type="submit" form="<%= id %>-form" name="saved" value="<%= saved.id %>" class="ql-saved-item">
+      <span class="ql-saved-name"><%= saved.name %></span>
+      <code class="ql-saved-query"><%= saved.query %></code>
+      <% if saved.used_at %><span class="ql-saved-used"><%= t("querylane.saved.used", date: l(saved.used_at.to_date, format: :short)) %></span><% end %>
+    </button>
+  <% end %>
+</div>

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Installs the pinned tools (mise), the bundle, the JS dev packages and
+# Chromium, then runs the checks once. Meilisearch specs skip without a server.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# Through mise when it is installed. A function, not an array: macOS's bash 3.2
+# treats an empty "${array[@]}" as unbound under `set -u`.
+run() {
+  if command -v mise >/dev/null 2>&1; then mise exec -- "$@"; else "$@"; fi
+}
+
+if command -v mise >/dev/null 2>&1; then mise install; fi
+run bundle install
+run npm install
+run npx playwright install chromium
+run bundle exec rake

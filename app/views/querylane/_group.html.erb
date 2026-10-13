@@ -1,0 +1,21 @@
+<%# One group (e.g. a person) and its records, with "N more records" only
+    when the group has records the page does not show. Locals: presenter, group, columns. %>
+<% token = presenter.group_token(group) %>
+<div class="ql-group" <%= tag.attributes(data: {querylane_group: token}) %>>
+  <div class="ql-group-head">
+    <div class="ql-group-title"><%= presenter.title(group) %></div>
+    <% if (subtitle = presenter.subtitle(group)) %><div class="ql-group-subtitle"><%= subtitle %></div><% end %>
+    <% if (note = presenter.note(group)) %><div class="ql-group-note"><%= note %></div><% end %>
+  </div>
+  <% group.hits.each do |hit| %>
+    <%= render "querylane/record", presenter: presenter, hit: hit, columns: columns %>
+  <% end %>
+  <% if token && (more = presenter.more_count(group)) %>
+    <details class="ql-more" data-action="toggle->querylane--results#more">
+      <summary class="ql-link"><span class="ql-more-open"><%= t("querylane.group.more", count: more) %></span><span class="ql-more-hide"><%= t("querylane.group.hide") %></span></summary>
+      <button type="submit" form="<%= presenter.id %>-form" name="group" value="<%= token %>" hidden tabindex="-1"
+              data-turbo-frame="<%= presenter.related_frame_id(group) %>" data-querylane-more></button>
+      <turbo-frame id="<%= presenter.related_frame_id(group) %>" class="ql-related"></turbo-frame>
+    </details>
+  <% end %>
+</div>

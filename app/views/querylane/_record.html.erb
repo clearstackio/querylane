@@ -1,0 +1,16 @@
+<%# One record in lanes. Focusable for ↑/↓/Enter. Locals: presenter, hit, columns. %>
+<div class="ql-record" tabindex="-1" data-querylane-record="<%= presenter.record_key(hit) %>">
+  <% presenter.cells(hit).each_with_index do |cell, index| %>
+    <% width = columns[index]&.width %>
+    <div class="ql-lane <%= "ql-cell-#{cell.style}" if cell.style %>" style="<%= "width: #{width}px" if width %>"><%= cell.text %></div>
+  <% end %>
+  <% if presenter.status_label %>
+    <div class="ql-lane ql-lane-status">
+      <% if (badge = presenter.status(hit)) %><span class="ql-badge ql-badge-<%= badge.tone %>"><%= badge.text %></span><% end %>
+    </div>
+  <% end %>
+  <div class="ql-lane ql-lane-flags">
+    <% presenter.flags(hit).each do |flag| %><span class="ql-flag ql-flag-<%= flag.tone %>"><%= flag.text %></span><% end %>
+  </div>
+  <div class="ql-lane ql-lane-outcome"><%= render "querylane/outcome", outcome: presenter.outcome(hit) %></div>
+</div>

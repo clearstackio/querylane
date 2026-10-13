@@ -1,0 +1,17 @@
+<%# "More records": every record of one group the page did not show.
+    Locals: result (from querylane_related), presenter, frame. %>
+<turbo-frame id="<%= frame %>" class="ql-related">
+  <% if result.state == :unavailable %>
+    <div class="ql-related-head" role="status"><%= t("querylane.group.unavailable") %></div>
+  <% else %>
+    <% hits = result.unshown_hits %>
+    <div class="ql-related-head"><%= t("querylane.group.all", loaded: result.hits.size, total: result.total) %></div>
+    <% if hits.empty? %>
+      <div class="ql-related-none"><%= t("querylane.group.none") %></div>
+    <% end %>
+    <% columns = presenter.columns %>
+    <% hits.each do |hit| %>
+      <%= render "querylane/record", presenter: presenter, hit: hit, columns: columns %>
+    <% end %>
+  <% end %>
+</turbo-frame>

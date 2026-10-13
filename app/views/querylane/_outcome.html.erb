@@ -1,0 +1,16 @@
+<%# Open/View button (full-page POST) or the reason it cannot be opened. Locals: outcome. %>
+<% case outcome %>
+<% when Querylane::Presenter::Action %>
+  <%= button_to outcome.label, outcome.url, params: outcome.params || {}, method: :post,
+        class: "btn btn-sm #{(outcome.style == :primary) ? "btn-primary" : "btn-outline-primary"} ql-open",
+        form: {class: "d-inline", data: {turbo: false}}, data: {querylane_open: true} %>
+<% when Querylane::Presenter::Reason %>
+  <span class="ql-reason"><%= outcome.text %><% if outcome.link_url %> <%= link_to outcome.link_label, outcome.link_url, data: {turbo: false} %><% end %>
+    <% if outcome.more.any? %>
+      <details class="ql-reason-more">
+        <summary class="ql-link"><%= t("querylane.reasons.more", count: outcome.more.size) %></summary>
+        <ul><% outcome.more.each do |more| %><li><%= more %></li><% end %></ul>
+      </details>
+    <% end %>
+  </span>
+<% end %>

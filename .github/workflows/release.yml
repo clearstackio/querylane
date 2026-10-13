@@ -1,0 +1,40 @@
+# Publishes to rubygems.org with trusted publishing (OIDC, no API key) and a
+# Sigstore attestation, when a `v*` tag matching version.rb is pushed, and only
+# after the full CI suite passes on the tagged commit. The rubygems.org trusted
+# publisher names this workflow and the `rubygems` environment.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions: {}
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: rubygems
+    # The tag already exists, so `rake release` pushes nothing to git: no write
+    # access, and no token left in .git/config.
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@824c0e29fdfc7d689c191c27acc969d2d04b7dd8 # v1.331.0
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      - name: Check the tag matches the version
+        run: |
+          version="$(ruby -Ilib -e 'require "querylane/version"; print Querylane::VERSION')"
+          test "$GITHUB_REF_NAME" = "v$version" || { echo "Tag $GITHUB_REF_NAME does not match version $version"; exit 1; }
+      - uses: rubygems/release-gem@7f9650160c1a4e7989fdc9855807bdbd421d8b6b # v1.4.1

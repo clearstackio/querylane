@@ -1,0 +1,11 @@
+{
+    "name"           : "querylane-development",
+    "private"        : true,
+    "description"    : "Development-only JS for querylane's dummy app and browser specs",
+    "devDependencies": {
+        "@github/combobox-nav": "3.0.2",
+        "@hotwired/stimulus"  : "3.2.2",
+        "@hotwired/turbo"     : "8.0.12",
+        "playwright"          : "1.64.0"
+    }
+}

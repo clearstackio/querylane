@@ -1,0 +1,66 @@
+<%# The results frame: everything one search request answers.
+    Locals: result, id, info_id, per_id, first_load, rows. %>
+<turbo-frame id="<%= id %>-results" class="ql-results" data-revision="<%= result.revision %>" data-controller="querylane--results"
+             data-action="change->querylane--results#submitForm keydown->querylane--results#keys">
+  <%# The answer's state, inside the frame (Turbo keeps the frame element's own
+      attributes): the revision answered, for host tests waiting on a search. %>
+  <span hidden data-querylane-state data-revision="<%= result.revision %>" data-options-open="<%= result.options_open? %>" data-saved-active="<%= result.saved_active? %>"></span>
+  <% if result.rewritten %>
+    <turbo-stream action="querylane_set_query" target="<%= id %>-box" data-revision="<%= result.revision %>"><template><%= result.query %></template></turbo-stream>
+  <% end %>
+  <div id="<%= id %>-error" class="ql-error" role="alert"
+       <%= tag.attributes(data: {querylane_error_range: querylane_utf16_range(result.query, result.error&.range)&.to_json}) %>>
+    <% if result.error %>
+      <strong><%= t("querylane.states.invalid") %></strong> <%= result.error.message %>
+      <% if result.error.fix %>
+        <button type="submit" form="<%= id %>-form" name="fix" value="1" class="ql-link"><%= t("querylane.states.fix") %></button>
+      <% end %>
+    <% end %>
+  </div>
+  <% if result.notice %>
+    <div class="ql-notice ql-notice-<%= result.notice %>" role="status"><%= t("querylane.saved.notice.#{result.notice}") %></div>
+  <% end %>
+  <%= render "querylane/saved", result: result, id: id unless result.saved_searches.nil? %>
+  <%= render "querylane/chips", result: result, id: id %>
+  <%= render "querylane/options", result: result, id: id if result.options_open? %>
+
+  <div class="ql-under" <%= "inert" if result.options_open? %>>
+  <% case result.state %>
+  <% when :first_load %>
+    <%= first_load || render("querylane/first_load", definition: result.definition) %>
+    <div class="ql-footer"><div class="ql-info" <%= %(id="#{info_id}").html_safe if info_id %>><%= t("querylane.footer.showing", first: 0, last: 0, total: 0) %></div></div>
+  <% when :invalid %>
+  <% when :short %>
+    <div class="ql-state" role="status"><%= t("querylane.states.short", count: result.definition.min_text_length) %></div>
+  <% when :unavailable %>
+    <%= render "querylane/unavailable", result: result, id: id %>
+  <% when :denied %>
+    <%= render "querylane/denied", result: result, id: id %>
+  <% else %>
+    <div class="ql-layout">
+      <%= render "querylane/facets", result: result, id: id %>
+      <section class="ql-main" aria-live="polite">
+        <%= render "querylane/toolbar", result: result, id: id, per_id: per_id %>
+        <% if result.state == :empty %>
+          <%= render "querylane/empty", result: result, id: id %>
+        <% else %>
+          <div class="ql-rows"><%= rows %></div>
+          <button type="submit" form="<%= id %>-form" name="group" hidden tabindex="-1"
+                  data-turbo-frame="<%= id %>-preview" data-querylane--results-target="previewButton"></button>
+          <turbo-frame id="<%= id %>-preview" class="ql-preview" data-querylane--results-target="preview"></turbo-frame>
+        <% end %>
+        <div class="ql-footer">
+          <div class="ql-info" <%= %(id="#{info_id}").html_safe if info_id %>><%= t("querylane.footer.showing", first: result.first_shown, last: result.last_shown, total: result.total) %></div>
+          <div class="ql-keys" aria-hidden="true">
+            <span><kbd>/</kbd> <%= t("querylane.footer.keys.search") %></span>
+            <span><kbd>↑↓</kbd> <%= t("querylane.footer.keys.move") %></span>
+            <span><kbd>Enter</kbd> <%= t("querylane.footer.keys.open") %></span>
+            <span><kbd>Space</kbd> <%= t("querylane.footer.keys.preview") %></span>
+            <span><kbd>Esc</kbd> <%= t("querylane.footer.keys.clear") %></span>
+          </div>
+        </div>
+      </section>
+    </div>
+  <% end %>
+  </div>
+</turbo-frame>

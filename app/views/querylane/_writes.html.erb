@@ -1,0 +1,16 @@
+<%# The options panel's "Writes" line: what Search would put in the box, with
+    sensitive values masked. Its own frame, refreshed as fields change.
+    Locals: preview (Querylane::Preview), id. %>
+<turbo-frame id="<%= id %>-writes" class="ql-writes" aria-live="polite">
+  <div class="ql-writes-line">
+    <span class="ql-writes-label"><%= t("querylane.options.writes") %></span>
+    <% if preview.error %>
+      <span class="ql-writes-error"><%= t("querylane.options.invalid") %> <%= preview.error.message %></span>
+    <% else %>
+      <code class="ql-writes-text"><%= preview.text %></code>
+    <% end %>
+  </div>
+  <p class="ql-writes-kept">
+    <%= preview.kept.present? ? t("querylane.options.kept", text: preview.kept) : t("querylane.options.kept_none") %>
+  </p>
+</turbo-frame>

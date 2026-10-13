@@ -1,0 +1,39 @@
+<%# The preview (Space on a record): every record of its group, any status.
+    Locals: result (from querylane_related), presenter, id. %>
+<turbo-frame id="<%= id %>-preview" class="ql-preview">
+  <section class="ql-preview-card" aria-labelledby="<%= id %>-preview-title">
+    <% if result.state == :unavailable %>
+      <p role="status"><%= t("querylane.group.unavailable") %></p>
+    <% else %>
+      <% group = Querylane::Presenter::Group.new(nil, result.hits) %>
+      <header class="ql-preview-head">
+        <div>
+          <h2 id="<%= id %>-preview-title" class="ql-preview-title"><%= presenter.title(group) if result.hits.any? %></h2>
+          <% if result.hits.any? && (subtitle = presenter.subtitle(group)) %><div class="ql-preview-subtitle"><%= subtitle %></div><% end %>
+        </div>
+        <button type="button" class="ql-link" data-action="querylane--results#closePreview"><%= t("querylane.group.close") %></button>
+      </header>
+      <div class="ql-preview-count"><%= t("querylane.group.preview_count", count: result.total) %></div>
+      <ul class="ql-preview-list">
+        <% result.hits.each do |hit| %>
+          <li class="ql-preview-record">
+            <div>
+              <div class="ql-preview-line">
+                <strong><%= safe_join(presenter.cells(hit).first(3).map(&:text).compact_blank, " · ") %></strong>
+                <% if (badge = presenter.status(hit)) %><span class="ql-badge ql-badge-<%= badge.tone %>"><%= badge.text %></span><% end %>
+              </div>
+              <div class="ql-preview-detail">
+                <%= safe_join([*presenter.cells(hit).drop(3).map(&:text), *presenter.flags(hit).map(&:text)].compact_blank, " · ") %>
+              </div>
+            </div>
+            <div class="ql-preview-outcome"><%= render "querylane/outcome", outcome: presenter.outcome(hit) %></div>
+          </li>
+        <% end %>
+      </ul>
+      <footer class="ql-preview-foot" aria-hidden="true">
+        <span><kbd>↑↓</kbd> <%= t("querylane.group.keys.next") %></span>
+        <span><kbd>Esc</kbd> <%= t("querylane.group.keys.close") %></span>
+      </footer>
+    <% end %>
+  </section>
+</turbo-frame>

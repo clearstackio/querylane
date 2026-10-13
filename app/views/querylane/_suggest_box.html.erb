@@ -1,0 +1,45 @@
+<%# A search box with suggestions for any page (M7 header, M13 palette).
+    The form posts the text for suggestions into the list frame; the hidden
+    submitters post it to the search page (full page, never in a URL).
+    Locals: id, url, search_url, mode (:header or :palette), label, placeholder,
+    trigger (palette: show its button; ⌘K / Ctrl-K always opens it). %>
+<% palette = mode == :palette %>
+<div class="ql-suggest ql-suggest-<%= mode %>" data-controller="querylane--suggest"
+     data-querylane--suggest-debounce-value="<%= Querylane.configuration.debounce_ms %>"
+     data-querylane--suggest-palette-value="<%= palette %>"
+     data-action="keydown@document->querylane--suggest#shortcut">
+  <% if palette && trigger %>
+    <button type="button" class="ql-suggest-trigger" data-action="querylane--suggest#open">
+      <span><%= placeholder %></span> <kbd aria-hidden="true">⌘K</kbd>
+    </button>
+  <% end %>
+  <% if palette %>
+    <dialog class="ql-palette" aria-label="<%= label %>" data-querylane--suggest-target="dialog"
+            data-action="close->querylane--suggest#closed click->querylane--suggest#backdrop">
+  <% end %>
+  <%= form_with url: url, method: :post, id: "#{id}-form", class: "ql-suggest-form", html: {role: "search"},
+        data: {turbo: true, turbo_frame: "#{id}-list", action: "submit->querylane--suggest#submitted"} do %>
+    <%= hidden_field_tag :revision, 0, id: nil, data: {querylane__suggest_target: "revision"} %>
+    <svg class="ql-box-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <label class="visually-hidden" for="<%= id %>-input"><%= label %></label>
+    <input type="text" id="<%= id %>-input" name="<%= Querylane.configuration.param_name %>" class="ql-suggest-input"
+           placeholder="<%= placeholder %>" autocomplete="off" autocapitalize="off" spellcheck="false"
+           role="combobox" aria-autocomplete="list" aria-controls="<%= id %>-list" aria-expanded="false"
+           data-querylane--suggest-target="input"
+           data-action="input->querylane--suggest#typed keydown->querylane--suggest#keys focus->querylane--suggest#reopen compositionstart->querylane--suggest#compose compositionend->querylane--suggest#composed">
+    <kbd class="ql-suggest-key" aria-hidden="true"><%= palette ? "Esc" : "/" %></kbd>
+    <button type="submit" formaction="<%= search_url %>" data-turbo="false" hidden tabindex="-1" data-querylane--suggest-target="searchAll"></button>
+    <button type="submit" formaction="<%= search_url %>" name="options" value="1" data-turbo="false" hidden tabindex="-1" data-querylane--suggest-target="openOptions"></button>
+  <% end %>
+  <div class="ql-suggest-pop" hidden data-querylane--suggest-target="pop">
+    <turbo-frame id="<%= id %>-list" class="ql-suggest-list" role="listbox" aria-label="<%= label %>"
+                 data-querylane--suggest-target="list" data-action="combobox-commit->querylane--suggest#commit"></turbo-frame>
+    <div class="ql-suggest-foot" aria-hidden="true">
+      <span><kbd>↑↓</kbd> <%= t("querylane.suggest.keys.move") %></span>
+      <span><kbd>Enter</kbd> <%= t("querylane.suggest.keys.open") %></span>
+      <span><kbd>Tab</kbd> <%= t("querylane.suggest.keys.complete") %></span>
+      <span><kbd>Esc</kbd> <%= t("querylane.suggest.keys.close") %></span>
+    </div>
+  </div>
+  <% if palette %></dialog><% end %>
+</div>

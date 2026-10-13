@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>querylane dummy</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= stylesheet_link_tag "querylane" %>
+    <script type="importmap">
+      {"imports": {
+        "@github/combobox-nav": "/node_modules/@github/combobox-nav/dist/index.js",
+        "@hotwired/stimulus": "/node_modules/@hotwired/stimulus/dist/stimulus.js",
+        "@hotwired/turbo": "/node_modules/@hotwired/turbo/dist/turbo.es2017-esm.js",
+        "querylane": "/querylane/index.js",
+        "querylane/": "/querylane/"
+      }}
+    </script>
+    <script type="module">
+      import * as Turbo from "@hotwired/turbo"
+      import { Application } from "@hotwired/stimulus"
+      import { registerControllers } from "querylane"
+      Turbo.session.drive = false
+      registerControllers(Application.start())
+    </script>
+  </head>
+  <body style="max-width: 1040px; margin: 32px auto; font-family: system-ui, sans-serif">
+    <%= yield %>
+  </body>
+</html>

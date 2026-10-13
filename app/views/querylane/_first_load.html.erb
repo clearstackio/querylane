@@ -1,0 +1,15 @@
+<%# Before anything is typed: what to type, with the definition's examples. Locals: definition. %>
+<div class="ql-first-load">
+  <div class="ql-first-load-lead">
+    <h2><%= t("querylane.states.first_load_title") %></h2>
+    <p><%= t("querylane.states.first_load") %></p>
+  </div>
+  <% if definition.examples.any? %>
+    <div class="ql-first-load-examples">
+      <div class="ql-facet-title"><%= t("querylane.states.try") %></div>
+      <% definition.examples.each do |example| %>
+        <div class="ql-example"><code><%= example.query %></code><span><%= example.description %></span></div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

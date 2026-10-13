@@ -1,0 +1,29 @@
+<%# Syntax help card generated from the definition; a native popover (no JS).
+    Locals: definition, id, popover_id (optional, when shown twice on a page). %>
+<% popover_id = local_assigns.fetch(:popover_id, "#{id}-help") %>
+<button type="button" class="ql-link" popovertarget="<%= popover_id %>"><%= t("querylane.chips.syntax_help") %></button>
+<div id="<%= popover_id %>" popover class="ql-help">
+  <div class="ql-help-head">
+    <strong><%= t("querylane.help.title") %></strong>
+    <span><%= t("querylane.help.lead") %></span>
+  </div>
+  <dl class="ql-help-list">
+    <% definition.texts.each do |text| %>
+      <dt><%= text.default ? t("querylane.help.words") : "#{text.key}:" %></dt><dd><%= text.label.gsub("%{value}", "…") %><%= " · #{t("querylane.help.masked")}" if text.sensitive %></dd>
+    <% end %>
+    <% definition.filters.each do |filter| %>
+      <dt><%= filter.key %>:</dt><dd><%= filter.label.gsub("%{value}", "…") %><%= " · #{t("querylane.help.masked")}" if filter.sensitive %></dd>
+    <% end %>
+    <% definition.flags.each do |flags| %>
+      <dt><%= ([flags.key] + flags.aliases).map { |key| "#{key}:" }.join(" ") %></dt><dd><%= flags.values.keys.join(", ") %></dd>
+    <% end %>
+    <dt>- NOT OR ( )</dt><dd><%= t("querylane.help.boolean") %></dd>
+  </dl>
+  <% if definition.examples.any? %>
+    <div class="ql-help-examples">
+      <% definition.examples.each do |example| %>
+        <div><code><%= example.query %></code> <span><%= example.description %></span></div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

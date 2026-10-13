@@ -1,0 +1,32 @@
+<%# The options panel (M3): fields read from the box, Search writes them back.
+    Fields belong to the search form (form=…), so the live box text travels with
+    them; the server composes. Locals: result, id. %>
+<section class="ql-options" id="<%= id %>-options" aria-labelledby="<%= id %>-options-title"
+         data-controller="querylane--options" data-querylane--options-debounce-value="<%= Querylane.configuration.debounce_ms %>"
+         data-action="input->querylane--options#changed change->querylane--options#changed keydown.esc->querylane--options#cancel keydown.enter->querylane--options#apply">
+  <header class="ql-options-head">
+    <h2 id="<%= id %>-options-title"><%= t("querylane.options.title") %></h2>
+    <span><%= t("querylane.options.lead") %></span>
+  </header>
+  <div class="ql-options-groups">
+    <% result.definition.panel.each do |group| %>
+      <fieldset class="ql-options-group">
+        <% if group.label %><legend><%= group.label %></legend><% end %>
+        <% group.rows.each do |row| %>
+          <%= render "querylane/options_row", row: row, values: result.panel.values, held: result.panel.held, definition: result.definition, id: id %>
+        <% end %>
+      </fieldset>
+    <% end %>
+  </div>
+  <button type="submit" form="<%= id %>-form" name="compose_preview" value="1" data-turbo-frame="<%= id %>-writes" hidden
+          tabindex="-1" data-querylane--options-target="preview"></button>
+  <%= render "querylane/writes", preview: result.preview, id: id %>
+  <footer class="ql-options-foot">
+    <%= render "querylane/help", definition: result.definition, id: id, popover_id: "#{id}-options-help" %>
+    <button type="button" class="ql-link" data-action="querylane--options#reset"><%= t("querylane.options.reset") %></button>
+    <span class="ql-options-spacer"></span>
+    <button type="submit" form="<%= id %>-form" class="btn btn-link" data-querylane--options-target="cancel"><%= t("querylane.options.cancel") %></button>
+    <button type="submit" form="<%= id %>-form" name="compose_submit" value="1" class="btn btn-primary"
+            data-querylane--options-target="apply"><%= t("querylane.options.search") %></button>
+  </footer>
+</section>

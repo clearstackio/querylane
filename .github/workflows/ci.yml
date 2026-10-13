@@ -1,0 +1,50 @@
+# `rake` (the suite and StandardRB) on every supported Ruby, against
+# Meilisearch 1.13 and headless Chromium, so no example skips. release.yml
+# calls it before publishing.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Ruby ${{ matrix.ruby }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["3.3", "3.4", "4.0"]
+    services:
+      meilisearch:
+        image: getmeili/meilisearch:v1.13
+        env:
+          MEILI_MASTER_KEY: ci-master-key-not-a-secret
+          MEILI_NO_ANALYTICS: "true"
+        ports: ["7700:7700"]
+    env:
+      MEILISEARCH_URL: http://127.0.0.1:7700
+      MEILISEARCH_API_KEY: ci-master-key-not-a-secret
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@824c0e29fdfc7d689c191c27acc969d2d04b7dd8 # v1.331.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Wait for Meilisearch
+        run: timeout 60 bash -c 'until curl -sf http://127.0.0.1:7700/health; do sleep 1; done'
+      - run: bundle exec rake
