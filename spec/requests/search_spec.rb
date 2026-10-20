@@ -67,7 +67,8 @@ RSpec.describe "The search endpoint", :meilisearch, type: :request do
     it "loads the records the page did not show, any status, without the group key in the page" do
       token = group_token("smith is:active")
       frame = response.body[/id="(people-related-\h{16})"/, 1]
-      expect(response.body).not_to include("p1")
+      # Encrypted tokens are random base64 and may spell "p1" by chance.
+      expect(response.body.gsub(%r{[\w+/=]+--[\w+/=]+--[\w+/=]+}, "")).not_to include("p1")
 
       post "/search", params: {group: token}, headers: {"Turbo-Frame" => frame}
 
