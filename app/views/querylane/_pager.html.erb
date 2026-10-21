@@ -1,9 +1,10 @@
-<%# Previous, up to five pages, Next. Submit buttons of the search form. Locals: result, id. %>
+<%# locals: (result:, id:) -%>
+<%# Previous, up to five pages, Next. Submit buttons of the search form. %>
 <% pages = [result.pages, 1].max
    start = [[result.page - 2, 1].max, [pages - 4, 1].max].min
    window = (start..[start + 4, pages].min) %>
 <nav aria-label="<%= t("querylane.toolbar.pages") %>">
-  <ul class="pagination pagination-sm mb-0 ql-pager">
+  <ul class="pagination pagination-sm ql-pager">
     <li class="page-item previous <%= "disabled" if result.page <= 1 %>">
       <button type="submit" form="<%= id %>-form" name="page" value="<%= result.page - 1 %>" class="page-link" <%= "disabled" if result.page <= 1 %>><%= t("querylane.toolbar.previous") %></button>
     </li>

@@ -1,9 +1,11 @@
-<%# Open/View button (full-page POST) or the reason it cannot be opened. Locals: outcome. %>
+<%# locals: (outcome:) -%>
+<%# Open/View or the reason a record cannot be opened. Open/View is a Go link
+    (rows hold no buttons) drawn on a button, because it posts (a full page). %>
 <% case outcome %>
 <% when Querylane::Presenter::Action %>
   <%= button_to outcome.label, outcome.url, params: outcome.params || {}, method: :post,
-        class: "btn btn-sm #{(outcome.style == :primary) ? "btn-primary" : "btn-outline-primary"} ql-open",
-        form: {class: "d-inline", data: {turbo: false}}, data: {querylane_open: true} %>
+        class: "ql-go ql-open",
+        form: {class: "ql-open-form", data: {turbo: false}}, data: {querylane_open: true} %>
 <% when Querylane::Presenter::Reason %>
   <span class="ql-reason"><%= outcome.text %><% if outcome.link_url %> <%= link_to outcome.link_label, outcome.link_url, data: {turbo: false} %><% end %>
     <% if outcome.more.any? %>

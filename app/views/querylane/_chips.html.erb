@@ -1,4 +1,5 @@
-<%# "Searching for" chips. × removes that term (server rewrites the query). Locals: result, id. %>
+<%# locals: (result:, id:) -%>
+<%# "Searching for" chips. × removes that term (server rewrites the query). %>
 <% if result.chips.any? %>
   <div class="ql-chips">
     <span class="ql-chips-label"><%= t("querylane.chips.searching_for") %></span>

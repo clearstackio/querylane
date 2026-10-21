@@ -1,5 +1,6 @@
+<%# locals: (result:, presenter:, frame:) -%>
 <%# "More records": every record of one group the page did not show.
-    Locals: result (from querylane_related), presenter, frame. %>
+    result comes from querylane_related; frame is the requesting frame id. %>
 <turbo-frame id="<%= frame %>" class="ql-related">
   <% if result.state == :unavailable %>
     <div class="ql-related-head" role="status"><%= t("querylane.group.unavailable") %></div>

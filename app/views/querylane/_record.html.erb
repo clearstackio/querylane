@@ -1,4 +1,5 @@
-<%# One record in lanes. Focusable for ↑/↓/Enter. Locals: presenter, hit, columns. %>
+<%# locals: (presenter:, hit:, columns:) -%>
+<%# One record in lanes. Focusable for ↑/↓/Enter. %>
 <div class="ql-record" tabindex="-1" data-querylane-record="<%= presenter.record_key(hit) %>">
   <% presenter.cells(hit).each_with_index do |cell, index| %>
     <% width = columns[index]&.width %>

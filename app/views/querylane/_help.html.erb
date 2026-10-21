@@ -1,6 +1,7 @@
+<%# locals: (definition:, id:, popover_id: nil) -%>
 <%# Syntax help card generated from the definition; a native popover (no JS).
-    Locals: definition, id, popover_id (optional, when shown twice on a page). %>
-<% popover_id = local_assigns.fetch(:popover_id, "#{id}-help") %>
+    popover_id names it when it is shown twice on a page. %>
+<% popover_id ||= "#{id}-help" %>
 <button type="button" class="ql-link" popovertarget="<%= popover_id %>"><%= t("querylane.chips.syntax_help") %></button>
 <div id="<%= popover_id %>" popover class="ql-help">
   <div class="ql-help-head">

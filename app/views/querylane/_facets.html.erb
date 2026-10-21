@@ -1,6 +1,7 @@
+<%# locals: (result:, id:) -%>
 <%# Facets. A value is a submit button with checkbox semantics: it asks the server
-    to tick or untick that value in the query text. Locals: result, id. %>
-<aside class="ql-facets" aria-label="Filters">
+    to tick or untick that value in the query text. %>
+<aside class="ql-facets" aria-label="<%= t("querylane.facets.label") %>">
   <% result.facets.each do |facet| %>
     <section class="ql-facet">
       <h3 class="ql-facet-title"><%= facet.label %></h3>

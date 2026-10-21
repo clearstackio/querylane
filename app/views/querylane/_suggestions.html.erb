@@ -1,6 +1,6 @@
+<%# locals: (result:, presenter:, groups:, id:) -%>
 <%# Suggestions: operator completions, people (groups), go-to. Options carry
-    no query text: a completion holds only its word, people their own Action.
-    Locals: result, presenter, groups, id. %>
+    no query text: a completion holds only its word, people their own Action. %>
 <turbo-frame id="<%= id %>-list" class="ql-suggest-list" role="listbox" data-revision="<%= result.revision %>">
   <% if result.completions.any? %>
     <div role="group" aria-labelledby="<%= id %>-operators">

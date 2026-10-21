@@ -107,6 +107,7 @@ en:
     facets:
       find: "Find a %{facet}…"
       find_label: "Find a %{facet} value"
+      label: "Filters"
       note: "Counts are records. Ticking more boxes in one group widens the search (OR); the counts beside unticked boxes show what they would add. Different groups narrow (AND)."
       unavailable: "Counts unavailable"
     help:

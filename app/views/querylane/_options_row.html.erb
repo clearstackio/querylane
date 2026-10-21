@@ -1,4 +1,5 @@
-<%# One options-panel row. Locals: row (Definition::PanelRow), values, held, definition, id.
+<%# locals: (row:, values:, held:, definition:, id:) -%>
+<%# One options-panel row (a Definition::PanelRow).
     A masked field starts empty: its current terms stay in the box (shown
     masked as the placeholder); what is typed here is added. %>
 <% field_id = ->(name) { "#{id}-compose-#{name}" } %>

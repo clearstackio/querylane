@@ -66,7 +66,7 @@ words in `<mark>`. It falls back to the plain document value.
 | `Column` | `key, label, width` | `width` in pixels; `nil` takes the remaining space |
 | `Cell` | `text, style` | `style`: `:strong`, `:muted` or `nil` |
 | `Badge` | `text, tone` | `tone`: `:success`, `:warning`, `:danger`, `:info`, `:neutral` |
-| `Action` | `label, url, params, style` | A button that POSTs `params` to `url` as a full page (Turbo off). `style: :primary` is a filled button; anything else is outlined |
+| `Action` | `label, url, params, style` | A button that POSTs `params` to `url` as a full page (Turbo off), drawn as a Go link (`.ql-go`). `style` is kept for hosts and no longer changes the look |
 | `Reason` | `text:, link_label: nil, link_url: nil, more: []` | Why a record cannot be opened, with an optional link. `more` lists further reasons behind "+N more" |
 | `Group` | `key, hits` | One group of hits |
 | `Suggestion` | `detail, badge, action` | How a group appears in suggestions |

@@ -1,6 +1,7 @@
+<%# locals: (result:, id:) -%>
 <%# Saved searches (M12): a native popover opened by the box's Saved button.
     Name and Save belong to the search form; choosing one sends its id and the
-    server rewrites the box. Locals: result, id. %>
+    server rewrites the box. %>
 <div id="<%= id %>-saved" popover class="ql-saved">
   <div class="ql-saved-head">
     <label for="<%= id %>-saved-name"><%= t("querylane.saved.title") %></label>

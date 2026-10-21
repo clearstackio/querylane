@@ -1,16 +1,18 @@
-<%# No hits: say what found nothing and offer one-click ways to widen. Locals: result, id. %>
+<%# locals: (result:, id:) -%>
+<%# No hits: say what found nothing and offer one-click ways to widen. Each
+    way only rewrites the query, so it is a quiet link, never a button. %>
 <div class="ql-empty">
   <h2><%= t("querylane.states.empty_title", searched: result.chips.map(&:label).join(" · ")) %></h2>
   <div class="ql-empty-actions">
     <% result.widenable_facets.each do |facet| %>
-      <button type="submit" form="<%= id %>-form" name="widen" value="<%= facet.key %>" class="btn btn-outline-primary btn-sm"><%= t("querylane.states.widen_#{facet.key}", default: t("querylane.states.widen", facet: facet.label.downcase)) %></button>
+      <button type="submit" form="<%= id %>-form" name="widen" value="<%= facet.key %>" class="ql-link"><%= t("querylane.states.widen_#{facet.key}", default: t("querylane.states.widen", facet: facet.label.downcase)) %></button>
     <% end %>
     <%# Every filter can be dropped; the words are the search itself. %>
     <% result.chips.reject(&:words).each do |chip| %>
-      <button type="submit" form="<%= id %>-form" name="remove" value="<%= chip.index %>" class="btn btn-outline-secondary btn-sm"><%= t("querylane.states.drop", label: chip.label) %></button>
+      <button type="submit" form="<%= id %>-form" name="remove" value="<%= chip.index %>" class="ql-link"><%= t("querylane.states.drop", label: chip.label) %></button>
     <% end %>
     <% unless result.relaxed %>
-      <button type="submit" form="<%= id %>-form" name="relax" value="1" class="btn btn-outline-secondary btn-sm"><%= t("querylane.states.relax") %></button>
+      <button type="submit" form="<%= id %>-form" name="relax" value="1" class="ql-link"><%= t("querylane.states.relax") %></button>
     <% end %>
   </div>
   <p class="ql-facet-note"><%= t("querylane.states.empty_note") %></p>

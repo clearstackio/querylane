@@ -1,5 +1,5 @@
-<%# The results frame: everything one search request answers.
-    Locals: result, id, info_id, per_id, first_load, rows. %>
+<%# locals: (result:, id:, info_id:, per_id:, first_load:, rows:) -%>
+<%# The results frame: everything one search request answers. %>
 <turbo-frame id="<%= id %>-results" class="ql-results" data-revision="<%= result.revision %>" data-controller="querylane--results"
              data-action="change->querylane--results#submitForm keydown->querylane--results#keys">
   <%# The answer's state, inside the frame (Turbo keeps the frame element's own

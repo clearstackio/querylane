@@ -6,6 +6,11 @@
  */
 /* The hidden attribute wins over the display rules below. */
 :where(.querylane-form, .ql-results, .ql-suggest, .ql-palette) [hidden] { display: none !important; }
+/* A label read by assistive technology only. */
+.ql-visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+/* The search landmark around a box and its form. */
+.ql-search { display: block; }
 
 :root {
   --ql-accent: var(--bs-primary, #0d6efd);
@@ -69,6 +74,9 @@
   border-radius: 13px; background: var(--ql-chip); color: var(--ql-text); }
 .ql-chip-remove { border: 0; background: none; padding: 0; color: var(--ql-muted); line-height: 1; }
 .ql-link { border: 0; background: none; padding: 0; color: var(--bs-link-color, #0865d1); font-weight: 500; }
+/* A Go link: opens a record or a page (bold, no box), even when it is a button that posts. */
+.ql-go { border: 0; background: none; padding: 0; color: var(--bs-link-color, #0865d1); font-weight: 700; }
+.ql-link:hover, .ql-go:hover { text-decoration: underline; }
 [data-querylane-stale] .ql-chips { opacity: 0.55; }
 .ql-state { padding: 28px 0; font-size: 15px; color: var(--ql-muted); }
 .ql-state-unavailable { padding: 20px 24px; border-left: 3px solid #977405; background: #fffbea; color: var(--ql-text); }
@@ -95,6 +103,7 @@
 .ql-count-note { margin-left: 10px; font-size: 13px; font-weight: 400; color: var(--ql-muted); }
 .ql-count { font-size: 18px; line-height: 22px; font-weight: 700; color: var(--ql-heading); }
 .ql-toolbar-controls { display: flex; align-items: center; gap: 16px; }
+.ql-pager { margin-bottom: 0; }
 .ql-control { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: var(--ql-muted); }
 .ql-control .form-select { width: auto; }
 
@@ -125,7 +134,7 @@
 .ql-badge-neutral { background: var(--ql-neutral-bg); color: var(--ql-neutral-fg); }
 .ql-flag-neutral { border: 1px solid var(--ql-border); color: var(--ql-muted); }
 .ql-reason { font-size: 13px; line-height: 17px; color: var(--ql-muted); }
-.ql-open { font-weight: 700; }
+.ql-open-form { display: inline; }
 
 /* Footer ---------------------------------------------------------------------- */
 .ql-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; font-size: 13px; color: var(--ql-muted); }

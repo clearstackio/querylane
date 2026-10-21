@@ -7,6 +7,25 @@ change public APIs; each entry says how.
 
 ## [Unreleased]
 
+### Changed
+
+- Every partial declares its locals on its first line (Rails strict locals,
+  `<%# locals: (...) -%>`). A host override must keep the line, and a render
+  with other locals now raises. `_help` takes `popover_id: nil` instead of
+  reading `local_assigns`.
+- Controls follow one hierarchy (theming guide, "Bootstrap"): the box's
+  Search and the options panel's Search are outline buttons
+  (`btn-outline-primary`); Open and View are Go links (`.ql-go`, still a
+  button that posts); the empty state's actions and the panel's Cancel are
+  quiet links (`.ql-link`). `Presenter::Action#style` no longer changes the
+  look.
+- No Bootstrap utility classes: `.ql-visually-hidden` replaces
+  `visually-hidden`, `.ql-open-form` replaces `d-inline`, and `.ql-pager`
+  sets its own margin instead of `mb-0`.
+- The search box and the suggestion box sit in a `<search>` landmark
+  (`.ql-search`) instead of a form with `role="search"`.
+- The facet column's accessible name comes from `querylane.facets.label`.
+
 ## [0.1.0] - 2026-10-20
 
 The first release.

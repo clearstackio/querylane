@@ -1,10 +1,19 @@
-<%# The search form and box. Outside the results frame, so typing never loses the caret.
-    Locals: result, id, url, input_id, label, placeholder, mask, button_id, options, help, extra. %>
-<%= form_with url: url, method: :post, id: "#{id}-form", class: "querylane-form",
-      data: {turbo: true, turbo_frame: "#{id}-results", controller: "querylane--box",
+<%# locals: (result:, id:, url:, input_id:, label:, placeholder:, mask:, button_id:, options:, help:, extra:) -%>
+<%# The search form and box, in a search landmark. Outside the results frame,
+    so typing never loses the caret. Search applies the box (an outline
+    button): the host's page keeps its one solid button for a commit. %>
+<%
+  form_id = "#{id}-form"
+  frame_id = "#{id}-results"
+  help_id = "#{id}-help-text" if help
+  described_by = [help_id, "#{id}-error"].compact.join(" ")
+%>
+<search class="ql-search">
+<%= form_with url: url, method: :post, id: form_id, class: "querylane-form",
+      data: {turbo: true, turbo_frame: frame_id, controller: "querylane--box",
              querylane__box_debounce_value: Querylane.configuration.debounce_ms,
              querylane__box_mask_value: mask.to_s,
-             querylane__box_frame_value: "#{id}-results",
+             querylane__box_frame_value: frame_id,
              querylane__box_min_value: result.definition.min_text_length.to_i,
              action: "submit->querylane--box#submitted turbo:before-cache@document->querylane--box#forget keydown@document->querylane--box#shortcut"} do %>
   <%# The default button: Enter in the box searches (Options comes first in the box). %>
@@ -14,10 +23,10 @@
     <svg class="ql-box-icon" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <div class="ql-box-field">
       <div class="ql-box-overlay" aria-hidden="true" data-querylane--box-target="overlay"></div>
-      <label class="visually-hidden" for="<%= input_id %>"><%= label %></label>
+      <label class="ql-visually-hidden" for="<%= input_id %>"><%= label %></label>
       <input type="text" id="<%= input_id %>" name="<%= Querylane.configuration.param_name %>" value="<%= result.query %>"
              class="ql-box-input" placeholder="<%= placeholder %>" autocomplete="off" autocapitalize="off" spellcheck="false"
-             aria-describedby="<%= [("#{id}-help-text" if help), "#{id}-error"].compact.join(" ") %>"
+             aria-describedby="<%= described_by %>"
              data-querylane--box-target="input"
              data-action="input->querylane--box#typed keydown->querylane--box#keys scroll->querylane--box#paint select->querylane--box#paint click->querylane--box#paint compositionstart->querylane--box#compose compositionend->querylane--box#composed">
     </div>
@@ -39,8 +48,9 @@
         <%= t("querylane.box.options") %>
       </button>
     <% end %>
-    <button type="submit" class="btn btn-primary ql-box-submit" <%= %(id="#{button_id}").html_safe if button_id %>><%= t("querylane.box.search") %></button>
+    <button type="submit" class="btn btn-outline-primary ql-box-submit" <%= tag.attributes(id: button_id) %>><%= t("querylane.box.search") %></button>
   </div>
-  <% if help %><p class="ql-box-help" id="<%= id %>-help-text"><%= help %></p><% end %>
+  <% if help %><p class="ql-box-help" id="<%= help_id %>"><%= help %></p><% end %>
   <div class="ql-hint" role="status" hidden data-querylane--box-target="hint"><%= t("querylane.states.short", count: result.definition.min_text_length) if result.definition.min_text_length %></div>
 <% end %>
+</search>

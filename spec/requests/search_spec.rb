@@ -220,4 +220,35 @@ RSpec.describe "The search endpoint", :meilisearch, type: :request do
       expect(response.body).to include("+1 more").and include("Combo-billed division.")
     end
   end
+
+  describe "control levels" do
+    it "puts the box in a search landmark whose Search applies, never commits" do
+      get "/"
+
+      expect(response.body).to match(%r{<search class="ql-search">\s*<form[^>]*id="people-form"})
+      expect(response.body).to match(/<button type="submit" class="btn btn-outline-primary ql-box-submit"/)
+    end
+
+    it "draws Open as a Go link that still posts, and no utility classes" do
+      post "/search", params: {search_query: "smith"}, headers: {"Turbo-Frame" => "people-results"}
+
+      expect(response.body).to match(%r{<form class="ql-open-form"[^>]*method="post"[^>]*>.*?<button class="ql-go ql-open"}m)
+      expect(response.body).not_to match(/class="[^"]*\b(visually-hidden|mb-0|d-inline)\b/)
+    end
+
+    it "names the facet column from the locale and each help popover by where it shows" do
+      post "/search", params: {search_query: "smith", options: "1"}, headers: {"Turbo-Frame" => "people-results"}
+
+      expect(response.body).to include(%(<aside class="ql-facets" aria-label="#{I18n.t("querylane.facets.label")}">))
+      expect(response.body).to include('popovertarget="people-help"').and include('popovertarget="people-options-help"')
+    end
+
+    it "puts the header box and the palette's form in search landmarks, the palette's inside its dialog" do
+      get "/elsewhere"
+
+      expect(response.body).to match(%r{<search class="ql-search">\s*<form[^>]*id="find-form"})
+      expect(response.body).to match(%r{<dialog class="ql-palette".*?<search class="ql-search">\s*<form[^>]*id="palette-form".*?</search>.*?</dialog>}m)
+      expect(response.body).not_to include('role="search"')
+    end
+  end
 end

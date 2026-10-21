@@ -1,5 +1,6 @@
+<%# locals: (presenter:, group:, columns:) -%>
 <%# One group (e.g. a person) and its records, with "N more records" only
-    when the group has records the page does not show. Locals: presenter, group, columns. %>
+    when the group has records the page does not show. %>
 <% token = presenter.group_token(group) %>
 <div class="ql-group" <%= tag.attributes(data: {querylane_group: token}) %>>
   <div class="ql-group-head">

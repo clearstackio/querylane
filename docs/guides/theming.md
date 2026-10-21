@@ -77,19 +77,34 @@ The stylesheet has no dark-mode values; set the properties under your own
 
 ## Bootstrap
 
-The partials use these Bootstrap 5 classes: `btn`, `btn-primary`,
-`btn-outline-primary`, `btn-outline-secondary`, `btn-link`, `btn-sm`,
+The partials use Bootstrap 5 components only, never its grid or utility
+classes: `btn`, `btn-primary`, `btn-outline-primary`, `btn-sm`,
 `form-control`, `form-control-sm`, `form-select`, `form-select-sm`,
-`pagination`, `pagination-sm`, `page-item`, `page-link`, `visually-hidden`,
-`d-inline` and `mb-0`. Without Bootstrap, define at least `visually-hidden`
-(the box label uses it). `--ql-accent` follows `--bs-primary` when it is set.
+`pagination`, `pagination-sm`, `page-item` and `page-link`. Hidden labels use
+querylane's own `.ql-visually-hidden`. `--ql-accent` follows `--bs-primary`
+when it is set.
+
+Controls follow one hierarchy, so a host page can keep its single solid
+button for a commit:
+
+| Level | Class | Controls |
+| --- | --- | --- |
+| Commit | `btn btn-primary` | Save in the saved-searches popover |
+| Apply | `btn btn-outline-primary` | the box's Search, the options panel's Search |
+| Go | `.ql-go` | Open and View on a record (a button that posts, drawn as a bold link) |
+| Quiet | `.ql-link` | Clear, Fix it, Syntax help, Cancel, Reset, the empty state's widen, drop and relax actions |
+
+To give Go and Quiet your own link styles, extend them in your stylesheet
+(Sass: `.ql-go { @extend .your-go-link; }`).
 
 The box resets borders and shadows that host styles put on inputs.
 
 ## Overriding partials
 
 Copy a partial to the same path in your app and edit it. Rails finds yours
-first. Each partial's header comment lists its locals.
+first. Each partial's first line declares its locals
+(`<%# locals: (result:, id:) -%>`); keep that line, since Rails rejects a
+render that passes other locals.
 
 | Partial | Draws | Locals |
 | --- | --- | --- |
@@ -163,5 +178,4 @@ A widen button looks up `querylane.states.widen_<facet key>` first (for example
 `widen_team: "Search all teams"`), then `querylane.states.widen`.
 
 Query error messages (other than `errors.parked`) are English strings built in
-Ruby, and the facet column's `aria-label="Filters"` is fixed in `_facets`.
-Override the partial to change the latter.
+Ruby. The facet column's accessible name is `querylane.facets.label`.

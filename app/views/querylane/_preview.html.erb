@@ -1,5 +1,6 @@
+<%# locals: (result:, presenter:, id:) -%>
 <%# The preview (Space on a record): every record of its group, any status.
-    Locals: result (from querylane_related), presenter, id. %>
+    result comes from querylane_related. %>
 <turbo-frame id="<%= id %>-preview" class="ql-preview">
   <section class="ql-preview-card" aria-labelledby="<%= id %>-preview-title">
     <% if result.state == :unavailable %>

@@ -1,6 +1,7 @@
-<%# The options panel's "Writes" line: what Search would put in the box, with
-    sensitive values masked. Its own frame, refreshed as fields change.
-    Locals: preview (Querylane::Preview), id. %>
+<%# locals: (preview:, id:) -%>
+<%# The options panel's "Writes" line (a Querylane::Preview): what Search
+    would put in the box, with sensitive values masked. Its own frame,
+    refreshed as fields change. %>
 <turbo-frame id="<%= id %>-writes" class="ql-writes" aria-live="polite">
   <div class="ql-writes-line">
     <span class="ql-writes-label"><%= t("querylane.options.writes") %></span>
