@@ -67,10 +67,27 @@ module Querylane
 
       def client = @client.respond_to?(:call) ? @client.call : @client
 
+      # Turns a backend failure into SearchUnavailable and logs why. An API
+      # error is logged by code, type and status only: its message can echo
+      # the filter, and filters carry what the user searched for.
       def call
         yield
-      rescue ::Meilisearch::ApiError, ::Meilisearch::CommunicationError, ::Meilisearch::TimeoutError => error
-        raise SearchUnavailable, "Meilisearch #{error.class.name.demodulize}"
+      rescue ::Meilisearch::ApiError => error
+        unavailable(error, "code=#{error.code} type=#{error.type} http=#{error.http_code}", error.code)
+      rescue ::Meilisearch::CommunicationError, ::Meilisearch::TimeoutError => error
+        unavailable(error, without_url_secrets(error.message))
+      end
+
+      # A connection error can quote the client URL; keep its host and port,
+      # drop any user:password@ and query string.
+      def without_url_secrets(message)
+        message.gsub(%r{(\w+://)[^\s/@]+@}, '\1').gsub(/\?[^\s)]*/, "")
+      end
+
+      def unavailable(error, detail, code = nil)
+        name = "Meilisearch #{error.class.name.demodulize}"
+        Querylane.configuration.logger.warn("[querylane] search unavailable: #{name} #{detail}")
+        raise SearchUnavailable, [name, code].compact.join(" ")
       end
 
       # Indexes whose scope and query can match something; the others are

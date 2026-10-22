@@ -5,6 +5,7 @@ module Querylane
   #
   #   Querylane.configure do |config|
   #     config.searcher = -> { Querylane::Searchers::Meilisearch.new(client: MeilisearchService.client) }
+  #     config.logger = Rails.logger
   #   end
   class Configuration
     # Name of the query parameter (filtered from logs by the engine).
@@ -17,6 +18,10 @@ module Querylane
     attr_accessor :allow_get_query
 
     attr_writer :searcher
+
+    # Where querylane writes why a search could not run. A host passes its
+    # own (Rails.logger); without one querylane logs to standard output.
+    attr_writer :logger
 
     # How long a group token ("more records", preview) stays valid.
     attr_accessor :group_token_ttl
@@ -35,7 +40,11 @@ module Querylane
       @debounce_ms = 300
       @allow_get_query = false
       @searcher = nil
+      @logger = ActiveSupport::Logger.new($stdout)
     end
+
+    # @return [Logger]
+    attr_reader :logger
 
     # The searcher for this request. A callable is resolved on every call, so
     # it can follow code reloading and per-request clients.

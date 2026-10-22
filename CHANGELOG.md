@@ -7,6 +7,15 @@ change public APIs; each entry says how.
 
 ## [Unreleased]
 
+### Added
+
+- `config.logger`: querylane logs why a search was unavailable (Meilisearch
+  unreachable, timed out, or an API error such as a missing index). API
+  errors are logged by code, type and HTTP status only, never their message,
+  which can echo the filter; connection errors lose any URL credentials and
+  query string. The default logger writes to standard output; a Rails host
+  passes `Rails.logger`.
+
 ### Changed
 
 - Every partial declares its locals on its first line (Rails strict locals,

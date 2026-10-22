@@ -169,6 +169,8 @@ A complete, working version of this example lives in [`spec/dummy`](spec/dummy).
 Rails.application.config.to_prepare do
   Querylane.configure do |config|
     config.searcher = -> { Querylane::Searchers::Meilisearch.new(client: Meilisearch::Client.new(ENV["MEILISEARCH_URL"], ENV["MEILISEARCH_API_KEY"])) }
+    # Why a search could not run (default: standard output).
+    config.logger = Rails.logger
   end
 end
 ```

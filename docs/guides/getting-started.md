@@ -20,6 +20,8 @@ Follow [Installation](../../README.md#installation) in the README: the gem, the
 Rails.application.config.to_prepare do
   Querylane.configure do |config|
     config.searcher = -> { Querylane::Searchers::Meilisearch.new(client: Meilisearch::Client.new(ENV.fetch("MEILISEARCH_URL"), ENV["MEILISEARCH_API_KEY"])) }
+    # Why a search could not run (default: standard output).
+    config.logger = Rails.logger
   end
 end
 ```
