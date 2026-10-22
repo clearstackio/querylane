@@ -30,7 +30,13 @@ module Querylane
         super
       end
     end
-    Group = Data.define(:key, :hits)
+    # lead: the hit that placed the group on the page (the first of its hits
+    # to come back, in the page's sort); hits may be reordered after it.
+    Group = Data.define(:key, :hits, :lead) do
+      def initialize(key:, hits:, lead: hits.first)
+        super
+      end
+    end
     # A group in suggestions: a short detail, its status, and what choosing it
     # does (an Action opens it; nil runs the full search).
     Suggestion = Data.define(:detail, :badge, :action)
@@ -87,7 +93,8 @@ module Querylane
     # @return [String] the id of the group's "more records" frame
     def related_frame_id(group) = "#{id}-related-#{record_key(group.hits.first)}"
 
-    # @return [Array<Group>] in hit order, the best-ranked hit leading each group
+    # @return [Array<Group>] in hit order: each group sits where its first hit
+    #   came back (best-ranked, or first in the chosen sort), which leads it
     def groups
       order = []
       grouped = {}
@@ -96,12 +103,15 @@ module Querylane
         order << key unless grouped.key?(key)
         (grouped[key] ||= []) << hit
       end
-      order.map { |key| Group.new(key, order_records(grouped.fetch(key))) }
+      order.map do |key|
+        hits = grouped.fetch(key)
+        Group.new(key: key, hits: order_records(hits), lead: hits.first)
+      end
     end
 
     # A group's records in the definition's group order (the order "more
-    # records" and the preview use); unchanged without one. The best-ranked
-    # record still decides where the group sits on the page.
+    # records" and the preview use); unchanged without one. The lead record
+    # still decides where the group sits on the page and what it is called.
     def order_records(hits)
       order = result.definition.group&.order
       return hits if order.nil? || hits.one?
@@ -120,10 +130,12 @@ module Querylane
       0
     end
 
-    # Group heading (HTML-safe); default: the first highlighted text attribute.
+    # Group heading (HTML-safe); default: the lead record's first highlighted
+    # text attribute, so headings follow the page's order (Name A–Z reads in
+    # name order even when one person's records carry different names).
     def title(group)
       attribute = result.definition.highlight.first
-      view.querylane_highlight(group.hits.first, attribute)
+      view.querylane_highlight(group.lead, attribute)
     end
 
     # Secondary heading next to the title (HTML-safe or plain), or nil.

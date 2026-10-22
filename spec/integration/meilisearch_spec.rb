@@ -60,6 +60,26 @@ RSpec.describe "Searching Meilisearch through querylane", :meilisearch do
     expect(result.pages).to eq(2)
   end
 
+  it "heads each group with the record that placed it, so Name A–Z headings read in name order" do
+    ordered = Querylane::Definition.build(:people_by_start) do |d|
+      definition.indexes.each { |index| d.index index.key, name: index.name }
+      d.text :name, attributes: %i[full_name], default: true
+      d.flags :is, attribute: :status_label, label: "Status", values: {active: "Active", terminated: "Terminated"}
+      d.sort :best, default: true
+      d.sort :name, by: {full_name: :asc}
+      d.highlight :full_name
+      d.group :person, order: {started: :asc}
+    end
+    request = Querylane::Request.new(definition: ordered, query: "is:active", sort: "name", per: "25")
+    result = Querylane::Search.new(definition: ordered, request: request, scope: scope).call
+    view = Class.new { def querylane_highlight(hit, attribute) = hit.document[attribute.to_s] }.new
+    presenter = Querylane::Presenter.new(result, view)
+
+    jane = presenter.groups.first
+    expect(jane.hits.map(&:id)).to eq(%w[s5 s6])
+    expect(presenter.groups.map { |group| presenter.title(group) }).to eq(["ADAMS, JANE", "LEE, ANN", "SMITH, JOHN", "SMITHERS, JANE", "SMYTHE, ROBERT"])
+  end
+
   it "reports invalid queries without searching" do
     result = search("smith stauts:active")
 
