@@ -152,7 +152,10 @@ replaces.
   resumed) keeps later renders flowing.
 
 The suggest box uses the same scheme on its list frame. The results controller
-also drops a preview answer that arrives after Esc.
+also drops a preview answer that arrives after Esc. It forgets the preview when
+a new answer's empty preview frame connects (a Stimulus target callback, as the
+rows are swapped in), not on `turbo:frame-render`, which Turbo fires a few
+repaints later: a Space pressed in that gap keeps its preview.
 
 ### Turbo snapshots
 

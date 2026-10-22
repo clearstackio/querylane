@@ -62,6 +62,14 @@ change public APIs; each entry says how.
   (`.ql-search`) instead of a form with `role="search"`.
 - The facet column's accessible name comes from `querylane.facets.label`.
 
+### Fixed
+
+- Space on a record right after a new answer drew its rows opens the preview.
+  The preview state was reset on `turbo:frame-render`, which Turbo fires a few
+  repaints after the rows are in, so the preview's answer was dropped as if
+  Esc had closed it. It is now reset when the new, empty preview frame
+  connects.
+
 ## [0.1.0] - 2026-10-20
 
 The first release.

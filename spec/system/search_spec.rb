@@ -82,6 +82,40 @@ RSpec.describe "Searching in the browser", :meilisearch, type: :system do
     expect(page.evaluate_script("document.activeElement.dataset.querylaneRecord")).to be_present
   end
 
+  # Turbo swaps a new answer's rows in a few repaints before it fires
+  # turbo:frame-render. A Space pressed in between, whose preview answers after
+  # that event, must still open the preview.
+  it "previews with Space pressed as soon as a new answer's rows are in" do
+    page.driver.with_playwright_page do |playwright|
+      playwright.add_init_script(script: <<~JS)
+        const fetchNow = window.fetch
+        window.fetch = (url, options = {}) => {
+          const preview = window.holdPreview && (options.body instanceof FormData || options.body instanceof URLSearchParams) && options.body.has("group")
+          return preview ? new Promise((resolve) => setTimeout(resolve, 300)).then(() => fetchNow(url, options)) : fetchNow(url, options)
+        }
+      JS
+    end
+    visit "/"
+    fill_in "Search Text", with: "smith"
+    expect(page).to have_css(".ql-group", count: 1)
+
+    page.execute_script(<<~JS)
+      window.holdPreview = true
+      const frame = document.getElementById("people-results")
+      frame.querySelectorAll("[data-querylane-state]").forEach((state) => state.setAttribute("data-old", ""))
+      new MutationObserver((_, observer) => {
+        if (!frame.querySelector("[data-querylane-state]:not([data-old])")) return
+        observer.disconnect()
+        const record = frame.querySelector("[data-querylane-record]")
+        record.focus()
+        record.dispatchEvent(new KeyboardEvent("keydown", {key: " ", bubbles: true, cancelable: true}))
+      }).observe(frame, {childList: true, subtree: true})
+    JS
+    fill_in "Search Text", with: "smith is:active"
+
+    expect(page).to have_css(".ql-preview-card", text: "2 records you can see, any status")
+  end
+
   it "suggests operators and people in the header box, and opens a person's only record" do
     visit "/elsewhere"
     fill_in "find-input", with: "lee st"

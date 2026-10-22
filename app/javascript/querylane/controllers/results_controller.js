@@ -23,7 +23,6 @@ export default class extends Controller {
     this.element.addEventListener("turbo:before-frame-render", this.guardPreview)
     this.restore = (event) => {
       if (event.target !== this.element) return
-      this.previewGroup = null
       this.restoreFocus()
     }
     this.element.addEventListener("querylane:focus-first", this.focusFirst)
@@ -93,6 +92,14 @@ export default class extends Controller {
 
   submitForm(event) {
     if (event.target.matches("select[form]")) event.target.form?.requestSubmit()
+  }
+
+  // A new answer brings a new, empty preview frame: nothing is previewed any
+  // more. Stimulus calls this as the rows are swapped in; turbo:frame-render
+  // comes a few repaints later, after a quick Space may have started a preview.
+  previewTargetConnected() {
+    this.previewGroup = null
+    this.previewKey = null
   }
 
   // private
