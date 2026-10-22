@@ -22,7 +22,9 @@ module DummySearch
       d.index :contractors, name: index_name(:contractors)
       d.text :name, attributes: %i[full_name], default: true, label: "Name contains %{value}"
       d.filter :last4, attribute: :id_last4, sensitive: true, format: /\A\d{4}\z/, label: "Last four %{value}", mask: :none
-      d.filter :team, attribute: :team, label: "Team %{value}"
+      # Exact, shown as typed; an empty search offers the value as name words.
+      d.filter :team, attribute: :team, label: "Team %{value}", format: /\A\D+\z/,
+        invalid: "Team names have no digits.", as_words: true, display_value: :typed
       d.flags :is, alias: :status, attribute: :status_label, label: "Status", values: {active: "Active", terminated: "Terminated"}
       d.facet :status, flag: :is
       d.facet :team, filter: :team, top: 5, show: 1, search: true
@@ -36,11 +38,11 @@ module DummySearch
       d.saved store: "MemorySavedSearches"
       d.option :exclude_terminated, "Exclude terminated", "-is:terminated"
       d.panel "Who" do |p|
-        p.row "Name contains", :name
+        p.row "Name contains", :name, placeholder: "Part of any name"
         p.row "Last four", :last4
       end
       d.panel "Where and status" do |p|
-        p.row "Team", :team
+        p.row "Team", :team, hint: "One exact team name, any case."
         p.row "Status", :is
         p.row nil, :exclude_terminated
       end

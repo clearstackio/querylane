@@ -292,3 +292,53 @@ RSpec.describe Querylane::Saving do
     end
   end
 end
+
+RSpec.describe Querylane::Rewriter, "as words" do
+  let(:definition) do
+    Querylane::Definition.build(:names) do |d|
+      d.index :x, name: "x"
+      d.text :name, attributes: %i[full_name], default: true
+      d.filter :last, attribute: :last_name, normalize: ->(value) { value.upcase.delete(" ") }, as_words: true, display_value: :typed
+      d.filter :policy, attribute: :policy_number
+      d.interpreter ->(token) { [:policy, token] if token.match?(/\A\d+\z/) }
+      d.panel("Who") { |p| p.row "Last name", :last }
+    end
+  end
+
+  def query(text) = Querylane::Query.analyze(definition, text)
+
+  def as_words(text, index)
+    analyzed = query(text)
+    described_class.as_words(analyzed, Querylane::Chips.for(analyzed).find { |chip| chip.index == index })
+  end
+
+  it "replaces the filter term with its typed value as plain words" do
+    expect(as_words("smith last:smiht is", 1)).to eq("smith smiht is")
+    expect(as_words(%(last:"van allen" policy:1), 0)).to eq("van allen policy:1")
+  end
+
+  it "quotes words the parser would read as syntax" do
+    expect(as_words(%(last:"OR -x a:b (c)"), 0)).to eq(%("OR" "-x" "a:b" "(c)"))
+  end
+
+  it "quotes words the interpreter would read as an operator" do
+    expect(as_words(%(last:"smith 1234"), 0)).to eq(%(smith "1234"))
+    expect(query(as_words(%(last:"smith 1234"), 0)).text_terms.map(&:value)).to eq(%w[smith 1234])
+  end
+
+  it "keeps the words apart from a neighbour typed without a space" do
+    expect(as_words(%(last:"smith"policy:1), 0)).to eq("smith policy:1")
+  end
+
+  it "leaves the query alone for a chip that does not offer it" do
+    expect(as_words("smith policy:1", 1)).to eq("smith policy:1")
+    expect(described_class.as_words(query("smith"), nil)).to eq("smith")
+  end
+
+  it "shows and writes a typed-display filter as typed in the options panel" do
+    analyzed = query(%(last:"van allen"))
+
+    expect(described_class.panel(analyzed).values["last"]).to eq(%("van allen"))
+    expect(described_class.compose(analyzed, {"last" => "o'brien smith"})).to eq("(last:o'brien OR last:smith)")
+  end
+end

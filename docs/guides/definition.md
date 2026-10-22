@@ -63,7 +63,7 @@ d.text :id, attributes: %i[memberid], sensitive: true, label: "Member ID startin
 A query may use only one text operator. `smith id:12345` is an error. Text words
 can't appear inside `OR`, `NOT` or parentheses.
 
-### `filter(key, attribute:, sensitive: false, normalize: nil, format: nil, label: nil, mask: nil)`
+### `filter(key, attribute:, sensitive: false, normalize: nil, format: nil, label: nil, mask: nil, invalid: nil, as_words: false, display_value: :normalized)`
 
 An exact match on one attribute (`attribute = value`).
 
@@ -71,6 +71,9 @@ An exact match on one attribute (`attribute = value`).
 d.filter :team, attribute: :team, label: "Team %{value}"
 d.filter :ssn, attribute: :memberid, sensitive: true, normalize: :digits, format: /\A\d{9}\z/,
   label: "SSN %{value}", mask: :last4
+d.filter :last, attribute: :last_name, normalize: ->(value) { value.upcase.delete(" ") },
+  format: /\A[A-Z][A-Z-]*\z/, label: "Last name %{value}",
+  invalid: "search.errors.last", as_words: true, display_value: :typed
 ```
 
 | Option | Meaning |
@@ -79,6 +82,9 @@ d.filter :ssn, attribute: :memberid, sensitive: true, normalize: :digits, format
 | `format` | A Regexp the normalized value must match. If it does not, the query is invalid |
 | `sensitive` | As for `text`. The format error says "That value" instead of repeating it. Sensitive filters cannot have facets |
 | `label`, `mask` | As for `text` |
+| `invalid` | A second sentence for the format error, as a locale key or text (see [Keys or text](#keys-or-text)): `"12345" is not a valid last: value.` followed by your sentence. Default: none |
+| `as_words` | `true`: when a search finds nothing, the empty state offers "Search "smiht" as part of a name", which replaces this filter's term with its typed value as plain words. Not allowed on a sensitive filter |
+| `display_value` | `:typed` shows the value as typed in chips and in the options panel (`Last name van allen`), while the search still uses the normalized value. Default `:normalized`. `:typed` needs `mask: :none` |
 
 Masks, for a value `123456789`:
 
@@ -314,14 +320,16 @@ d.option :exclude_terminated, "Exclude terminated", "-is:terminated"
 The box text `smith -is:terminated` shows the checkbox ticked. Ticking it adds
 the text; unticking removes it.
 
-### `panel(label) { |p| p.row(label, *keys, bare: false, values: nil) }`
+### `panel(label) { |p| p.row(label, *keys, bare: false, values: nil, hint: nil, placeholder: nil) }`
 
 Lays out the panel in labelled groups of rows. Each row names operators or
 options.
 
 ```ruby
 d.panel "Who" do |p|
-  p.row "Name contains", :name
+  p.row "Name contains", :name, placeholder: "search.options.name_placeholder"
+  p.row "Last name", :last
+  p.row "First name", :first, hint: "search.options.names_hint"
   p.row "Member ID or SSN", :id, :ssn, bare: true
   p.row "Last four", :last4
 end
@@ -347,6 +355,19 @@ values raise at build time. The row label may be `nil`.
 Rows whose operator has a mask other than `:none` are **masked**: the field
 starts empty, its current terms stay in the box (shown masked as the field's
 placeholder), and what is typed is hidden until "Show" is pressed.
+
+`hint:` is a short line under the row, in the field column; the row's fields
+point to it with `aria-describedby`. To explain two rows at once, put the hint
+on the second. `placeholder:` sits in each empty input of an inputs row (it
+raises on a flags or options row). On a masked row, the "In the box: …"
+placeholder wins over the row's own. Both are a locale key or text.
+
+#### Keys or text
+
+`hint:`, `placeholder:` and a filter's `invalid:` take a Symbol or a dotted
+locale key (`"search.options.names_hint"`), translated each time the page is
+drawn, or plain text, shown as given. Anything with a space or without a dot is
+text. Keys follow the current locale even though the definition is built once.
 
 Parts of the query the panel cannot show (OR groups across operators, negated
 terms, terms for operators not in any row) are kept as typed.

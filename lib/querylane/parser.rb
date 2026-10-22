@@ -40,7 +40,7 @@ module Querylane
 
     def parse
       if @source.length > @config.max_length
-        raise Error.new("Search is too long (#{@config.max_length} characters at most).", 0...@source.length)
+        raise Error.new(message(:too_long, max: @config.max_length), 0...@source.length)
       end
 
       @tokens = tokenize
@@ -73,7 +73,7 @@ module Querylane
       elsif scanner.scan(/-(?=[^\s)])/) then token(:minus, scanner, start)
       elsif scanner.scan(KEY) then key_token(scanner, start, scanner[1])
       elsif scanner.scan(QUOTED) then token(:term, scanner, start, value: unescape(scanner[1]), quoted: true)
-      elsif scanner.scan('"') then raise Error.new("Close the quote.", start...@source.length)
+      elsif scanner.scan('"') then raise Error.new(message(:close_quote), start...@source.length)
       else
         scanner.scan(BARE)
         token(:term, scanner, start, value: scanner.matched)
@@ -86,7 +86,7 @@ module Querylane
       elsif scanner.scan(BARE)
         token(:term, scanner, start, key: key, value: scanner.matched)
       else
-        raise Error.new("#{key}: needs a value.", start...scanner.charpos)
+        raise Error.new(message(:needs_value, key: key), start...scanner.charpos)
       end
     end
 
@@ -99,7 +99,7 @@ module Querylane
     def parse_sequence(closing:)
       nodes = []
       until done? || (closing && peek?(:rparen))
-        raise Error.new("Unexpected ).", current.range) if peek?(:rparen)
+        raise Error.new(message(:unexpected, text: ")"), current.range) if peek?(:rparen)
 
         nodes << parse_or
       end
@@ -110,7 +110,7 @@ module Querylane
       parts = [parse_unary]
       while peek?(:or)
         operator = advance
-        raise Error.new("OR needs a term on both sides.", operator.range) if done? || peek?(:rparen) || peek?(:or)
+        raise Error.new(message(:or_needs_terms), operator.range) if done? || peek?(:rparen) || peek?(:or)
 
         parts << parse_unary
       end
@@ -122,7 +122,7 @@ module Querylane
     def parse_unary
       if peek?(:minus) || peek?(:not)
         operator = advance
-        raise Error.new("#{(operator.type == :not) ? "NOT" : "-"} needs a term.", operator.range) if done?
+        raise Error.new(message(:needs_term, operator: (operator.type == :not) ? "NOT" : "-"), operator.range) if done?
 
         node = parse_atom
         return Ast::Not.new(node, operator.range.begin...node.range.end)
@@ -131,24 +131,24 @@ module Querylane
     end
 
     def parse_atom
-      raise Error.new("Search ended early.", @source.length...@source.length) if done?
+      raise Error.new(message(:ended_early), @source.length...@source.length) if done?
 
       case current.type
       when :lparen then parse_group
-      when :or then raise Error.new("OR needs a term on both sides.", current.range)
+      when :or then raise Error.new(message(:or_needs_terms), current.range)
       when :term then parse_term
-      else raise Error.new("Unexpected #{@source[current.range]}.", current.range)
+      else raise Error.new(message(:unexpected, text: @source[current.range]), current.range)
       end
     end
 
     def parse_group
       open = advance
       @depth += 1
-      raise Error.new("Too many nested parentheses (#{@config.max_depth} at most).", open.range) if @depth > @config.max_depth
+      raise Error.new(message(:too_deep, max: @config.max_depth), open.range) if @depth > @config.max_depth
 
       nodes = parse_sequence(closing: true)
-      raise Error.new("Add the closing ).", open.range.begin...@source.length) unless peek?(:rparen)
-      raise Error.new("Empty parentheses.", open.range) if nodes.empty?
+      raise Error.new(message(:close_parenthesis), open.range.begin...@source.length) unless peek?(:rparen)
+      raise Error.new(message(:empty_parentheses), open.range) if nodes.empty?
 
       close = advance
       @depth -= 1
@@ -158,10 +158,13 @@ module Querylane
     def parse_term
       term = advance
       @terms += 1
-      raise Error.new("Too many terms (#{@config.max_terms} at most).", term.range) if @terms > @config.max_terms
+      raise Error.new(message(:too_many_terms, max: @config.max_terms), term.range) if @terms > @config.max_terms
 
       Ast::Term.new(term.key&.downcase, term.value, term.quoted, term.range)
     end
+
+    # Syntax errors share Query's localized messages (`querylane.errors.*`).
+    def message(name, **values) = Query.message(name, **values)
 
     def current = @tokens[@position]
 

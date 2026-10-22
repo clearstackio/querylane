@@ -161,21 +161,24 @@ person", "member IDs, SSNs or last fours"). Review these groups for your domain:
 | Group | Covers |
 | --- | --- |
 | `querylane.box.*` | Box label, placeholder, clear, Search, Options |
-| `querylane.options.*` | Options panel |
+| `querylane.options.*` | Options panel. A row's `hint:` and `placeholder:` are your own keys (or text), declared on `p.row` |
 | `querylane.suggest.*` | Suggest box, palette, list headings |
 | `querylane.saved.*` | Saved searches, refusal and notices |
 | `querylane.reasons.more` | "+N more" reasons |
-| `querylane.errors.parked` | "%{key}: is not available yet." |
+| `querylane.errors.*` | Every query error: syntax (`close_quote`, `unexpected`, `needs_value`, …), limits (`too_long`, `too_deep`, `too_many_terms`), operators (`parked`, `unknown_operator`, `did_you_mean`), values (`filter_value`, `filter_value_hidden`, `flag_value`) and placement (`text_in_or`, `text_in_not`, `text_in_group`, `one_text_operator`, `one_text_operator_alone`, whose lists are joined by `list_or`). A filter's `invalid:` sentence follows `filter_value` |
 | `querylane.group.*` | "More records", preview |
 | `querylane.chips.*` | Chips row, `count` mask |
 | `querylane.toolbar.*` | Count, sort, pager |
 | `querylane.footer.*` | "Showing …" and key legend |
 | `querylane.facets.*` | Facet notes and "Find…" |
 | `querylane.help.*` | Syntax help |
-| `querylane.states.*` | First load, short, empty, invalid, unavailable, denied |
+| `querylane.states.*` | First load, short, empty (`drop`, `relax`, `as_words`: "Search "%{value}" as part of a name"), invalid, unavailable, denied |
 
 A widen button looks up `querylane.states.widen_<facet key>` first (for example
 `widen_team: "Search all teams"`), then `querylane.states.widen`.
 
-Query error messages (other than `errors.parked`) are English strings built in
-Ruby. The facet column's accessible name is `querylane.facets.label`.
+The English defaults of `querylane.errors.*` also live in
+`Querylane::Query::MESSAGES`, so a host that drops the gem's locale file still
+gets them. Interpolated values are what the user typed, except a sensitive
+filter's value, which `filter_value_hidden` never receives. The facet column's
+accessible name is `querylane.facets.label`.

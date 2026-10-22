@@ -17,7 +17,16 @@ module Querylane
   class Definition
     Index = Data.define(:key, :name)
     Text = Data.define(:key, :attributes, :sensitive, :default, :label, :mask)
-    FilterOperator = Data.define(:key, :attribute, :sensitive, :normalize, :format, :label, :mask)
+    # invalid: a second sentence for the bad-value error (locale key or text);
+    # as_words: an empty search offers to search the value as plain words;
+    # display_value: :normalized (chips and the panel show the normalized value) or
+    # :typed (they show the value as typed).
+    FilterOperator = Data.define(:key, :attribute, :sensitive, :normalize, :format, :label, :mask, :invalid, :as_words, :display_value) do
+      # The newer members default, so code built for the earlier members still works.
+      def initialize(key:, attribute:, sensitive:, normalize:, format:, label:, mask:, invalid: nil, as_words: false, display_value: :normalized)
+        super
+      end
+    end
     Flags = Data.define(:key, :aliases, :attribute, :values, :rules, :label)
     # values: for a flag facet, the flag values it shows (nil: all of them).
     # top: filter-facet values loaded; show: how many show before "Find…";
@@ -44,7 +53,14 @@ module Querylane
     # values: for a :flags row, the flag values it shows (nil: all of them).
     # masked: an operator in the row masks its values (mask other than :none):
     # the field starts empty and hides what is typed.
-    PanelRow = Data.define(:label, :keys, :kind, :bare, :masked, :values) do
+    # hint: a line under the row; placeholder: the empty inputs' placeholder
+    # (each a locale key or text, see Querylane::Copy).
+    PanelRow = Data.define(:label, :keys, :kind, :bare, :masked, :values, :hint, :placeholder) do
+      # hint and placeholder default, so code built for the earlier members still works.
+      def initialize(label:, keys:, kind:, bare:, masked:, values:, hint: nil, placeholder: nil)
+        super
+      end
+
       # @return [String] the compose field name (unique per row, also when two
       #   rows show different values of one flag family)
       def name
@@ -63,6 +79,7 @@ module Querylane
       strip: ->(value) { value.strip }
     }.freeze
     MASKS = %i[none all last4 count].freeze
+    DISPLAYS = %i[normalized typed].freeze
 
     attr_reader :name, :indexes, :texts, :filters, :flags, :facets, :sorts, :per_options, :retrieve, :highlight, :hooks, :group,
       :saved_store, :min_text_length, :parked
@@ -228,11 +245,14 @@ module Querylane
       [nil, rows]
     end
 
-    # [label, [[row_label, keys, {bare:}], ...]] → PanelGroup, checked against the operators
+    # [label, [[row_label, keys, bare, values, hint, placeholder], ...]] → PanelGroup,
+    # checked against the operators
     def build_group((label, rows))
-      PanelGroup.new(label, rows.map do |row_label, keys, bare, values|
+      PanelGroup.new(label, rows.map do |row_label, keys, bare, values, hint, placeholder|
         if keys.all? { |key| option(key) }
-          PanelRow.new(row_label, keys, :options, false, false, nil)
+          raise ConfigurationError, "#{@name}: panel row #{row_label} takes placeholder: only for inputs" if placeholder
+
+          PanelRow.new(row_label, keys, :options, false, false, nil, hint, nil)
         else
           operators = keys.map { |key| operator(key) || raise(ConfigurationError, "#{@name}: panel field #{key} is not an operator or option") }
           kind = operators.all?(Flags) ? :flags : :inputs
@@ -242,8 +262,10 @@ module Querylane
           raise ConfigurationError, "#{@name}: panel row #{row_label} takes values: only for flags" if values && kind != :flags
           unknown = Array(values) - ((kind == :flags) ? operators.first.values.keys : [])
           raise ConfigurationError, "#{@name}: panel row #{row_label} has unknown values #{unknown.join(", ")}" if unknown.any?
+          raise ConfigurationError, "#{@name}: panel row #{row_label} takes placeholder: only for inputs" if placeholder && kind != :inputs
 
-          PanelRow.new(row_label, keys, kind, bare, operators.any? { |operator| operator.respond_to?(:mask) && operator.mask != :none }, values)
+          masked = operators.any? { |operator| operator.respond_to?(:mask) && operator.mask != :none }
+          PanelRow.new(row_label, keys, kind, bare, masked, values, hint, placeholder)
         end
       end.freeze)
     end
@@ -394,12 +416,22 @@ module Querylane
 
       # An exact-match operator. `normalize` runs before `format` is checked.
       # `mask` controls how chips show sensitive values: :none, :all, :last4, :count.
-      def filter(key, attribute:, sensitive: false, normalize: nil, format: nil, label: nil, mask: nil)
+      # `invalid` (locale key or text) follows "… is not a valid key: value."
+      # as a second sentence. `as_words: true` lets an empty search offer the
+      # value as plain words. `display_value: :typed` shows the value as typed in
+      # chips and the options panel (the search still uses the normalized value).
+      def filter(key, attribute:, sensitive: false, normalize: nil, format: nil, label: nil, mask: nil, invalid: nil, as_words: false,
+        display_value: :normalized)
         normalizer = normalize.is_a?(Symbol) ? NORMALIZERS.fetch(normalize) : normalize
         mask ||= sensitive ? :all : :none
         raise ConfigurationError, "Unknown mask #{mask}" unless MASKS.include?(mask)
+        raise ConfigurationError, "Unknown display_value #{display_value}" unless DISPLAYS.include?(display_value)
+        raise ConfigurationError, "filter #{key}: display_value: :typed needs mask: :none" if display_value == :typed && mask != :none
+        # The link would repeat the value in clear.
+        raise ConfigurationError, "filter #{key}: as_words cannot be sensitive" if as_words && sensitive
 
-        @filters << FilterOperator.new(key.to_sym, attribute.to_s, sensitive, normalizer, format, label || "#{key.to_s.humanize} %{value}", mask)
+        @filters << FilterOperator.new(key.to_sym, attribute.to_s, sensitive, normalizer, format, label || "#{key.to_s.humanize} %{value}", mask,
+          invalid, as_words ? true : false, display_value)
       end
 
       # A family of named values (`is:active`). Either `attribute:` (value
@@ -439,8 +471,10 @@ module Querylane
       # A labelled row of operators (or option keys). `bare: true` gives the
       # operators one shared input written without a prefix.
       # `values:` limits a flags row to some of its values (the rest stay in the box).
-      def row(label, *keys, bare: false, values: nil)
-        @rows << [label, keys.map(&:to_sym), bare, values&.map(&:to_sym)]
+      # `hint:` is a line under the row; `placeholder:` sits in the row's empty
+      # inputs (inputs rows only). Each is a locale key or text (Querylane::Copy).
+      def row(label, *keys, bare: false, values: nil, hint: nil, placeholder: nil)
+        @rows << [label, keys.map(&:to_sym), bare, values&.map(&:to_sym), hint, placeholder]
       end
     end
   end

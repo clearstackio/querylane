@@ -38,6 +38,16 @@ RSpec.describe "The search endpoint", :meilisearch, type: :request do
     expect(response.body).to match(/<div class="ql-under" inert>/)
   end
 
+  it "draws a row's placeholder and hint, the hint describing the row's field" do
+    post "/search", params: {search_query: "smith", options: "1"}, headers: {"Turbo-Frame" => "people-results"}
+    page = Nokogiri::HTML(response.body)
+    team = page.at_css('input[name="compose[team]"]')
+
+    expect(page.at_css('input[name="compose[name]"]')["placeholder"]).to eq("Part of any name")
+    expect(page.at_css("##{team["aria-describedby"]}").text).to eq("One exact team name, any case.")
+    expect(team["placeholder"]).to be_nil
+  end
+
   it "previews what the fields would write, without searching" do
     searcher = Querylane.configuration.searcher
     Querylane.configuration.searcher = -> { raise "no search for a preview" }
@@ -189,6 +199,24 @@ RSpec.describe "The search endpoint", :meilisearch, type: :request do
 
       post "/search", params: {search_query: "smith stauts:active", fix: "1", revision: "5"}, headers: {"Turbo-Frame" => "people-results"}
       expect(response.body).to include("<template>smith status:active</template>")
+    end
+
+    it "offers an exact filter that found nothing as name words, and rewrites the box to them" do
+      post "/search", params: {search_query: "team:lee"}, headers: {"Turbo-Frame" => "people-results"}
+      link = Nokogiri::HTML(response.body).at_css('.ql-empty button[name="as_words"]')
+
+      expect(link.text).to eq(%(Search "lee" as part of a name))
+      expect(link["class"]).to eq("ql-link")
+
+      post "/search", params: {search_query: "team:lee", as_words: link["value"], revision: "6"}, headers: {"Turbo-Frame" => "people-results"}
+
+      expect(response.body).to include("<template>lee</template>").and include("<mark>LEE</mark>, ANN")
+    end
+
+    it "adds the filter's own sentence to a bad value" do
+      post "/search", params: {search_query: "team:42"}, headers: {"Turbo-Frame" => "people-results"}
+
+      expect(response.body).to include("&quot;42&quot; is not a valid team: value. Team names have no digits.")
     end
 
     it "says a parked operator is not available yet" do

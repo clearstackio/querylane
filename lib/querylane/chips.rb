@@ -6,9 +6,11 @@ module Querylane
   # sensitive value in clear.
   module Chips
     # alternatives: other readings of an interpreted term ("Division 5432 instead");
-    # words: the chip of the query's words (names), not a filter.
-    Chip = Data.define(:index, :label, :ranges, :alternatives, :words) do
-      def initialize(index:, label:, ranges:, alternatives: [], words: false)
+    # words: the chip of the query's words (names), not a filter;
+    # as_words: for a filter whose operator opts in (`as_words: true`), the
+    # value as typed, which an empty search offers to search as plain words.
+    Chip = Data.define(:index, :label, :ranges, :alternatives, :words, :as_words) do
+      def initialize(index:, label:, ranges:, alternatives: [], words: false, as_words: nil)
         super
       end
     end
@@ -29,11 +31,23 @@ module Querylane
       query.nodes.each do |node|
         next if node.is_a?(Query::Term) && node.kind == :text
 
-        chips << [label(node), [node.range], alternatives(query, node)]
+        chips << [label(node), [node.range], alternatives(query, node), false, as_words(query, node)]
       end
-      chips.each_with_index.map do |(text, ranges, others, words), index|
-        Chip.new(index: index, label: text, ranges: ranges, alternatives: others || [], words: words || false)
+      chips.each_with_index.map do |(text, ranges, others, words, typed), index|
+        Chip.new(index: index, label: text, ranges: ranges, alternatives: others || [], words: words || false, as_words: typed)
       end
+    end
+
+    # The typed value of a top-level filter term whose operator offers it as
+    # plain words (never a sensitive one: the definition refuses that), or nil.
+    # Not offered while another text operator holds the words (one per query).
+    def as_words(query, node)
+      return unless node.is_a?(Query::Term) && node.kind == :filter && node.operator.as_words && !node.interpreted
+      return if query.text_operator && !query.text_operator.equal?(query.definition.default_text)
+
+      typed = node.raw.to_s.strip.presence
+      # Offered only when the rewritten query still runs (length and term limits).
+      typed if typed && Query.analyze(query.definition, Rewriter.words_in_place(query, node.range, typed), config: query.config).valid?
     end
 
     # Other readings of an interpreted term, each with the explicit text it
@@ -63,13 +77,16 @@ module Querylane
 
     def term_label(term)
       case term.kind
-      when :filter then format(term.operator, mask(term.value, term.operator.mask))
+      when :filter then format(term.operator, mask(filter_value(term), term.operator.mask))
       when :flag then "#{term.operator.label} #{term.operator.values.fetch(term.value)}"
       when :text then format(term.operator, term.value)
       end
     end
 
     def format(operator, value) = operator.label.gsub("%{value}", value.to_s)
+
+    # The value a filter chip shows: normalized, or as typed (`display_value: :typed`).
+    def filter_value(term) = (term.operator.display_value == :typed && !term.interpreted) ? term.raw.to_s : term.value.to_s
 
     # @param value [String]
     # @param mask [Symbol] :none, :all, :last4, :count

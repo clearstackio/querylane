@@ -25,3 +25,12 @@ RSpec.describe Querylane::Search, "clear" do
     expect(result).to have_attributes(state: :first_load, query: "", rewritten: true)
   end
 end
+
+RSpec.describe Querylane::Request, "as words" do
+  it "reads a chip index and rewrites from the first page" do
+    request = described_class.from_params({"as_words" => "2", "page" => "4"}, definition: TestSearch::DEFINITION)
+
+    expect(request).to have_attributes(as_words: 2, page: 1)
+    expect(described_class.new(definition: TestSearch::DEFINITION, as_words: "x").as_words).to be_nil
+  end
+end

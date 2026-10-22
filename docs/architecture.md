@@ -191,10 +191,11 @@ indexes.
 | `lib/querylane/configuration.rb` | Process-wide settings |
 | `lib/querylane/definition.rb` | The DSL, validation, panel layout |
 | `lib/querylane/parser.rb`, `ast.rb` | Syntax |
-| `lib/querylane/query.rb` | Meaning and validation |
+| `lib/querylane/query.rb` | Meaning, validation, localized error messages |
 | `lib/querylane/compiler.rb` | Query → text + filters |
 | `lib/querylane/filter.rb` | Backend-neutral filter tree |
 | `lib/querylane/scope.rb`, `context.rb` | Authorization and request facts |
+| `lib/querylane/copy.rb` | Host copy given as a locale key or text |
 | `lib/querylane/chips.rb` | Chip labels and masks |
 | `lib/querylane/rewriter.rb` | Structural text edits; options panel read/write |
 | `lib/querylane/preview.rb` | Masked "Writes" preview |
@@ -268,8 +269,6 @@ Optional: `group_counts(definition:, scope:, attribute:, values:)` → `{value
 
 - The Meilisearch searcher marks filter-facet counts approximate at 100 values,
   Meilisearch's default `maxValuesPerFacet`; a raised setting is not read.
-- Query error messages are English strings in Ruby; only `errors.parked` is a
-  translation key.
 - The doctor needs the Meilisearch searcher, and does not check the group
   attribute, its order attributes or `retrieve`.
 - The presenter orders a group's records on the page by comparing the

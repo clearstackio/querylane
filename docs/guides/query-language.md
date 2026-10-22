@@ -103,6 +103,7 @@ reason, and the box underlines the characters at fault.
 | `()` | Empty parentheses. |
 | `((((is:active))))` | Too many nested parentheses (3 at most). |
 | `is:gone` | gone is not a value of is:. Try active, terminated. |
+| `team:42` | "42" is not a valid team: value. Team names have no digits. (the second sentence is the filter's `invalid:`) |
 | `last4:12` | That value is not a valid last4: value. (sensitive values are never repeated) |
 | `first:ann` | first: is not available yet. (a key reserved for later) |
 | `smith OR jones` | OR joins operators, not names. Search one name at a time. |
@@ -130,6 +131,7 @@ the new text appears in the box:
 | Clear | (empty) |
 | "Search all team" (a widen button) when nothing matched | the query without its `team:` facet terms |
 | "Drop Team ops" when nothing matched | the query without `team:ops` |
+| "Search "lee" as part of a name" on `team:lee` when nothing matched (a filter with `as_words: true`) | `lee`: the value as typed, as plain words |
 | "Allow fewer name matches" | same text; names match on fewer words |
 | Search in the options panel | the text the panel's fields write |
 | A saved search | that search's text |

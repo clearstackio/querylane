@@ -11,6 +11,10 @@
     <% result.chips.reject(&:words).each do |chip| %>
       <button type="submit" form="<%= id %>-form" name="remove" value="<%= chip.index %>" class="ql-link"><%= t("querylane.states.drop", label: chip.label) %></button>
     <% end %>
+    <%# An exact filter that opts in (as_words) can search its typed value as plain words. %>
+    <% result.chips.select(&:as_words).each do |chip| %>
+      <button type="submit" form="<%= id %>-form" name="as_words" value="<%= chip.index %>" class="ql-link"><%= t("querylane.states.as_words", value: chip.as_words) %></button>
+    <% end %>
     <% unless result.relaxed %>
       <button type="submit" form="<%= id %>-form" name="relax" value="1" class="ql-link"><%= t("querylane.states.relax") %></button>
     <% end %>

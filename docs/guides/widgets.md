@@ -98,7 +98,7 @@ since is dropped ([Architecture](../architecture.md#revisions-and-stale-response
 | `:first_load` | "Who are you looking for?" with the definition's examples |
 | `:short` | "Type at least N letters of a name, or add an operator." |
 | `:ok` | Facets, toolbar, rows, footer |
-| `:empty` | "Nothing matches …" with buttons to widen a facet, drop a chip and allow fewer name matches |
+| `:empty` | "Nothing matches …" with buttons to widen a facet, drop a chip and allow fewer name matches, and, for a filter declared `as_words: true`, "Search "smiht" as part of a name" (posts `as_words=<chip index>`; the box gets the typed value as plain words in place of the filter term) |
 | `:invalid` | Only the error line; nothing was searched |
 | `:unavailable` | "Search is not answering right now." with Try again |
 | `:denied` | "No results: your access could not be checked." |
@@ -183,6 +183,10 @@ for flags and options. Parts no field can show are listed as "Kept as typed".
 - **Reset fields** empties every field.
 - A masked field starts empty, shows the masked terms it leaves in the box as its
   placeholder, hides what is typed, and has a **Show** button.
+- A row declared with `placeholder:` shows it in its empty inputs (a masked
+  field's "In the box: …" placeholder wins). A row declared with `hint:` shows a
+  line under its fields, which describes them (`aria-describedby`). See
+  [Definition](definition.md#the-options-panel).
 
 Opening the panel focuses its first field. The panel needs a valid query; with
 an invalid one it does not open.

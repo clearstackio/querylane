@@ -90,7 +90,7 @@ export default class extends Controller {
   // new revision; the rewrite comes back at that same revision.
   submitted(event) {
     clearTimeout(this.timer)
-    if (["toggle", "remove", "clear", "compose_submit", "saved", "fix", "instead", "widen", "relax"].includes(event.submitter?.name)) this.bump()
+    if (["toggle", "remove", "clear", "compose_submit", "saved", "fix", "instead", "widen", "relax", "as_words"].includes(event.submitter?.name)) this.bump()
   }
 
   setQuery(event) {

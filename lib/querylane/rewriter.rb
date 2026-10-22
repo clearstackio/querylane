@@ -50,6 +50,40 @@ module Querylane
       text.strip
     end
 
+    # The query with one filter chip's term replaced by its typed value as
+    # plain words ("smith last:smiht" → "smith smiht"), for a chip that offers
+    # it (Chip#as_words); otherwise the query unchanged.
+    #
+    # @param query [Querylane::Query] valid
+    # @param chip [Querylane::Chips::Chip, nil]
+    # @return [String]
+    def as_words(query, chip)
+      return query.source unless chip&.as_words
+
+      words_in_place(query, chip.ranges.first, chip.as_words)
+    end
+
+    # The query text with `range` replaced by `typed` as plain words.
+    #
+    # @return [String]
+    def words_in_place(query, range, typed)
+      words = typed.split.map { |word| bare_word(query.definition, word) }.join(" ")
+      # Keep the words apart from a neighbour typed without a space (`last:"x"is:active`).
+      before = (range.begin.positive? && !query.source[range.begin - 1].match?(/\s/)) ? " " : ""
+      after = (range.end < query.source.length && !query.source[range.end].match?(/\s/)) ? " " : ""
+      replace(query.source, range, "#{before}#{words}#{after}")
+    end
+
+    # A word that reads back as a plain word: anything the parser would take
+    # as syntax (an operator key, a leading "-", OR, NOT, brackets, quotes) or
+    # the interpreter would read as an operator ("1234" as a last four) is
+    # quoted, since quoted words are never interpreted.
+    def bare_word(definition, word)
+      plain = word.match?(/\A[^\s()"-][^\s()"]*\z/) && !word.match?(/\A#{Parser::KEY}/o) && !%w[OR NOT].include?(word) &&
+        definition.interpret(word).nil?
+      plain ? word : quoted(word)
+    end
+
     # The options panel's view of a query: each field's value (keyed by the
     # compose field name), the parts no field can show (kept as typed), and,
     # per masked field, the masked terms it leaves in the box (masked values
@@ -139,7 +173,7 @@ module Querylane
         written = found.map { |token| token.quoted ? quoted(token.text) : quote(token.text) }
         operator.default ? written.join(" ") : written.map { |text| "#{operator.key}:#{text}" }.join(" ")
       else
-        found = found.map { |token| operator.normalize ? token.with(text: operator.normalize.call(token.text)) : token }
+        found = found.map { |token| (operator.normalize && !typed?(operator)) ? token.with(text: operator.normalize.call(token.text)) : token }
         join_or(found.uniq.map { |token| "#{operator.key}:#{token.quoted ? quoted(token.text) : quote(token.text)}" })
       end
     end
@@ -169,7 +203,15 @@ module Querylane
       end
     end
 
-    def display(term) = term.quoted ? quoted(term.value.to_s) : term.value.to_s
+    # A field's text for a term: quoted as typed; a `display_value: :typed` filter
+    # shows the value as typed, others (and interpreted terms, whose typed
+    # token would read differently once prefixed) the normalized value.
+    def display(term)
+      value = (typed?(term.operator) && !term.interpreted) ? term.raw.to_s : term.value.to_s
+      term.quoted ? quoted(value) : value
+    end
+
+    def typed?(operator) = operator.is_a?(Definition::FilterOperator) && operator.display_value == :typed
 
     # Always quoted, with " and \ escaped.
     def quoted(value) = %("#{value.to_s.gsub(/["\\]/) { |char| "\\#{char}" }}")

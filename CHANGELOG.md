@@ -15,8 +15,35 @@ change public APIs; each entry says how.
   which can echo the filter; connection errors lose any URL credentials and
   query string. The default logger writes to standard output; a Rails host
   passes `Rails.logger`.
+- `p.row ... hint:, placeholder:` on options-panel rows: a line under the row
+  (its fields' `aria-describedby`) and a placeholder for its empty inputs (a
+  masked field's "In the box: …" still wins). `placeholder:` on a flags or
+  options row raises.
+- `d.filter ... invalid:`: a second sentence for the bad-value error.
+- `d.filter ... as_words: true`: when nothing matches, the empty state offers
+  "Search "smiht" as part of a name" (`querylane.states.as_words`, request
+  param `as_words=<chip index>`, `Rewriter.as_words`), which replaces the
+  filter term with its typed value as plain words. Refused on a sensitive
+  filter.
+- `d.filter ... display_value: :typed`: chips and the options panel show the
+  value as typed, and the panel writes it back as typed; the search still
+  uses the normalized value. Needs `mask: :none`.
+- `hint:`, `placeholder:` and `invalid:` take a locale key (a Symbol or a
+  dotted String) or plain text (`Querylane::Copy`), translated when shown.
 
 ### Changed
+
+- Every query error is a translation under `querylane.errors.*` (syntax,
+  limits, unknown and parked operators, bad filter and flag values, names in
+  OR, NOT and parentheses, one text operator). The English text is unchanged
+  and stays the default (`Querylane::Query::MESSAGES`).
+- With no filters declared, the one-text-operator error no longer ends in
+  "or combine with ."; it reads "Search name or id one at a time."
+- `Definition::FilterOperator` gains `invalid`, `as_words` and
+  `display_value`, `Definition::PanelRow` gains `hint` and `placeholder`, and
+  `Chips::Chip` gains `as_words`. Each new member has a default, so code that
+  builds these structs with the earlier members, by position or keyword,
+  still works.
 
 - Every partial declares its locals on its first line (Rails strict locals,
   `<%# locals: (...) -%>`). A host override must keep the line, and a render

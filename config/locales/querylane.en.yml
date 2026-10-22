@@ -59,8 +59,33 @@ en:
       more:
         one: "+1 more"
         other: "+%{count} more"
+    # Query errors (Querylane::Query::MESSAGES holds the same English as defaults).
+    # Values a user typed are interpolated; a sensitive value never is.
     errors:
       parked: "%{key}: is not available yet."
+      unknown_operator: "%{key}: is not an operator."
+      did_you_mean: "%{key}: is not an operator. Did you mean %{suggestion}:?"
+      filter_value: "\"%{value}\" is not a valid %{key}: value."
+      filter_value_hidden: "That value is not a valid %{key}: value."
+      flag_value: "%{value} is not a value of %{key}:. Try %{values}."
+      text_in_or: "OR joins operators, not names. Search one name at a time."
+      text_in_not: "- and NOT apply to operators, not names."
+      text_in_group: "Parentheses group operators, not names."
+      one_text_operator: "Search %{operators} one at a time, or combine with %{filters}."
+      one_text_operator_alone: "Search %{operators} one at a time."
+      # Joins the operator and filter lists of the two messages above.
+      list_or: " or "
+      too_long: "Search is too long (%{max} characters at most)."
+      close_quote: "Close the quote."
+      needs_value: "%{key}: needs a value."
+      unexpected: "Unexpected %{text}."
+      or_needs_terms: "OR needs a term on both sides."
+      needs_term: "%{operator} needs a term."
+      ended_early: "Search ended early."
+      too_deep: "Too many nested parentheses (%{max} at most)."
+      close_parenthesis: "Add the closing )."
+      empty_parentheses: "Empty parentheses."
+      too_many_terms: "Too many terms (%{max} at most)."
     group:
       more:
         one: "1 more record for this person"
@@ -125,6 +150,7 @@ en:
       widen: "Search all %{facet}"
       drop: "Drop %{label}"
       relax: "Allow fewer name matches"
+      as_words: "Search \"%{value}\" as part of a name"
       empty_note: "Each button changes the search box, so the new search is visible."
       empty: "No matching records found"
       unavailable_title: "Search is not answering right now."

@@ -45,4 +45,60 @@ RSpec.describe Querylane::Query do
   it "is blank for whitespace" do
     expect(analyze("   ")).to be_blank.and be_valid
   end
+
+  it "leaves out the filters hint when the definition has no filters" do
+    definition = Querylane::Definition.build(:texts) do |d|
+      d.index :x, name: "x"
+      d.text :name, attributes: %i[full_name], default: true
+      d.text :id, attributes: %i[memberid]
+    end
+
+    expect(described_class.analyze(definition, "smith id:12345").error.message).to eq("Search name or id one at a time.")
+  end
+end
+
+RSpec.describe Querylane::Query, "error copy" do
+  let(:definition) do
+    Querylane::Definition.build(:copy) do |d|
+      d.index :x, name: "x"
+      d.text :name, attributes: %i[full_name], default: true
+      d.filter :last, attribute: :last_name, normalize: :upcase, format: /\A[A-Z][A-Z -]*\z/, label: "Last name %{value}",
+        invalid: "For part of a name, type plain words."
+      d.filter :code, attribute: :code, format: /\A\d+\z/, invalid: "search.errors.code"
+      d.filter :ssn, attribute: :ssn, sensitive: true, format: /\A\d{9}\z/, invalid: :"search.errors.ssn"
+    end
+  end
+
+  def analyze(text) = described_class.analyze(definition, text)
+
+  after { I18n.reload! }
+
+  it "adds a filter's own sentence to the bad-value error" do
+    expect(analyze("last:12345").error.message).to eq(%("12345" is not a valid last: value. For part of a name, type plain words.))
+  end
+
+  it "reads a filter's sentence from the locale when it is a key, and never repeats a sensitive value" do
+    store_translations(search: {errors: {code: "Codes are digits.", ssn: "An SSN has nine digits."}})
+
+    expect(analyze("code:abc").error.message).to eq(%("abc" is not a valid code: value. Codes are digits.))
+    expect(analyze("ssn:12345").error.message).to eq("That value is not a valid ssn: value. An SSN has nine digits.")
+  end
+
+  it "takes every query error from querylane.errors, with the English text as default" do
+    store_translations(querylane: {errors: {
+      filter_value: "Bad %{key}: %{value}.", did_you_mean: "No %{key}:, try %{suggestion}:.", close_quote: "Quote!",
+      text_in_or: "No names in OR."
+    }})
+
+    expect(analyze("last:12345").error.message).to eq("Bad last: 12345. For part of a name, type plain words.")
+    expect(analyze("lst:smith").error.message).to eq("No lst:, try last:.")
+    expect(analyze(%(smith "open)).error.message).to eq("Quote!")
+    expect(analyze("smith OR jones").error.message).to eq("No names in OR.")
+  end
+
+  it "keeps the English defaults identical to the shipped locale file" do
+    shipped = YAML.load_file(File.expand_path("../../config/locales/querylane.en.yml", __dir__)).dig("en", "querylane", "errors")
+
+    expect(shipped.transform_keys(&:to_sym)).to eq(described_class::MESSAGES)
+  end
 end

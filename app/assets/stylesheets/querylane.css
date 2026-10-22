@@ -182,6 +182,8 @@
 .ql-options-inputs { display: flex; gap: 12px; }
 .ql-options-input { position: relative; flex: 1; min-width: 0; }
 .ql-options-input input { width: 100%; }
+/* A row's hint: under its fields, in the field column. */
+.ql-options-hint { grid-column: 2; margin: -6px 0 0; color: var(--ql-muted); font-size: 12px; line-height: 16px; }
 .ql-masked { -webkit-text-security: disc; }
 /* Above the field even when a host lifts a focused .form-control (Bootstrap 3 themes set z-index: 2). */
 .ql-options-reveal { position: absolute; top: 50%; right: 10px; z-index: 3; transform: translateY(-50%); font-size: 13px; }

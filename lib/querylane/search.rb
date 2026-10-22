@@ -211,6 +211,8 @@ module Querylane
           chip = Chips.for(query).find { |candidate| candidate.index == chip_index }
           alternative = chip&.alternatives&.find { |candidate| candidate.index == alternative_index }
           alternative ? Rewriter.replace(query.source, chip.ranges.first, alternative.text) : query.source
+        elsif @request.as_words
+          Rewriter.as_words(query, Chips.for(query).find { |candidate| candidate.index == @request.as_words })
         else
           chip = Chips.for(query).find { |candidate| candidate.index == @request.remove }
           chip ? Rewriter.remove(query.source, chip.ranges) : query.source

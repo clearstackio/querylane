@@ -1,8 +1,15 @@
 <%# locals: (row:, values:, held:, definition:, id:) -%>
 <%# One options-panel row (a Definition::PanelRow).
     A masked field starts empty: its current terms stay in the box (shown
-    masked as the placeholder); what is typed here is added. %>
-<% field_id = ->(name) { "#{id}-compose-#{name}" } %>
+    masked as the placeholder, which wins over the row's own placeholder);
+    what is typed here is added. The row's hint sits under it and describes
+    its fields. %>
+<%
+  field_id = ->(name) { "#{id}-compose-#{name}" }
+  hint = Querylane::Copy.text(row.hint)
+  hint_id = "#{field_id.(row.name)}-hint" if hint
+  placeholder = Querylane::Copy.text(row.placeholder)
+%>
 <div class="ql-options-row">
   <% case row.kind %>
   <% when :inputs %>
@@ -14,8 +21,8 @@
           <%# Sensitive fields stay type=text (a password field would invite the browser to save it), masked by CSS. %>
           <input type="text" id="<%= field_id.(name) %>" name="compose[<%= name %>]" form="<%= id %>-form"
                  value="<%= values[name] %>" class="form-control form-control-sm <%= "ql-masked" if row.masked %>" autocomplete="off" spellcheck="false"
-                 <%= tag.attributes(placeholder: (t("querylane.options.held", text: held[name]) if held[name])) %>
-                 <%= tag.attributes(aria: {label: ("#{row.label} #{name.humanize}" if position.positive?)}) %>
+                 <%= tag.attributes(placeholder: (held[name] ? t("querylane.options.held", text: held[name]) : placeholder)) %>
+                 <%= tag.attributes(aria: {label: ("#{row.label} #{name.humanize}" if position.positive?), describedby: hint_id}) %>
                  data-querylane--options-target="field">
           <% if row.masked %>
             <button type="button" class="ql-link ql-options-reveal" aria-controls="<%= field_id.(name) %>" aria-pressed="false"
@@ -28,7 +35,7 @@
   <% when :flags %>
     <% flags = definition.operator(row.keys.first) %>
     <span class="ql-options-label" id="<%= field_id.(row.name) %>-label"><%= row.label %></span>
-    <div class="ql-options-checks" role="group" aria-labelledby="<%= field_id.(row.name) %>-label">
+    <div class="ql-options-checks" role="group" aria-labelledby="<%= field_id.(row.name) %>-label" <%= tag.attributes(aria: {describedby: hint_id}) %>>
       <% definition.flag_values(flags, row.values).each do |value, label| %>
         <label class="ql-options-check">
           <input type="checkbox" name="compose[<%= row.name %>][]" value="<%= value %>" form="<%= id %>-form"
@@ -43,10 +50,13 @@
       <% row.keys.each do |key| %>
         <label class="ql-options-check">
           <input type="checkbox" name="compose[options][]" value="<%= key %>" form="<%= id %>-form"
-                 <%= "checked" if values["options"].include?(key.to_s) %> data-querylane--options-target="field">
+                 <%= "checked" if values["options"].include?(key.to_s) %> <%= tag.attributes(aria: {describedby: hint_id}) %> data-querylane--options-target="field">
           <%= definition.option(key).label %>
         </label>
       <% end %>
     </div>
+  <% end %>
+  <% if hint %>
+    <p class="ql-options-hint" id="<%= hint_id %>"><%= hint %></p>
   <% end %>
 </div>

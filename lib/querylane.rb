@@ -14,6 +14,7 @@ require "strscan"
 
 require "querylane/version"
 require "querylane/errors"
+require "querylane/copy"
 require "querylane/configuration"
 require "querylane/filter"
 require "querylane/scope"
