@@ -33,6 +33,10 @@ change public APIs; each entry says how.
 
 ### Changed
 
+- Development Ruby 3.3.13 (from 3.3.10): the lowest supported series' release
+  with the Onigmo regexp fixes (CVE-2026-89078, CVE-2026-93577,
+  CVE-2026-97229, CVE-2026-110264). `required_ruby_version` and the CI
+  matrix are unchanged.
 - Every query error is a translation under `querylane.errors.*` (syntax,
   limits, unknown and parked operators, bad filter and flag values, names in
   OR, NOT and parentheses, one text operator). The English text is unchanged
