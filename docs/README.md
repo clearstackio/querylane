@@ -23,6 +23,7 @@ Start with the [README](../README.md) for installation and a quick start.
 | Document | What it covers |
 | --- | --- |
 | [Architecture](architecture.md) | Request flow, frames and revisions, JavaScript, code map, searcher contract, decisions |
+| CI: [design](design/ci.md), [operations](ops/ci.md) | GitHub Actions: test matrix, release, how to rerun and fix |
 | [Decision records](decisions/README.md) | Why the box is a native input; why the parser is our own |
 | [Meilisearch 1.13 spike](spikes/meilisearch-1.13.md) | What the backend supports, measured |
 | [CONTRIBUTING](../CONTRIBUTING.md) | Setup, checks, conventions |
