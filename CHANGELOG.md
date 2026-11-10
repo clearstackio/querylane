@@ -7,6 +7,8 @@ change public APIs; each entry says how.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-10
+
 ### Added
 
 - `config.logger`: querylane logs why a search was unavailable (Meilisearch
@@ -33,6 +35,8 @@ change public APIs; each entry says how.
 
 ### Changed
 
+- Development and CI dependencies: rspec-rails 8.1.0, playwright 1.65.0,
+  ruby/setup-ruby 1.338.0.
 - Development Ruby 3.3.13 (from 3.3.10): the lowest supported series' release
   with the Onigmo regexp fixes (CVE-2026-89078, CVE-2026-93577,
   CVE-2026-97229, CVE-2026-110264). `required_ruby_version` and the CI
@@ -147,5 +151,6 @@ The first release.
 - `search.querylane` and `saved_search_failed.querylane` instrumentation, without
   query text. The query parameter and `compose` are filtered from logs.
 
-[Unreleased]: https://github.com/clearstackio/querylane/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/clearstackio/querylane/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/clearstackio/querylane/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/clearstackio/querylane/releases/tag/v0.1.0
