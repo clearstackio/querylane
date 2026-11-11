@@ -33,6 +33,7 @@ module Querylane
       query = Query.analyze(@definition, @request.query, config: @config)
       query, rewritten = rewrite(query)
       @notice = save(query) if @request.save_search && !@scope.denied?
+      @notice = delete_saved(@request.delete_saved) if @request.delete_saved && !@scope.denied?
       return result(:first_load, query, rewritten) if query.valid? && query.blank?
       return result(:invalid, query, rewritten, error: query.error) unless query.valid?
       return result(:short, query, rewritten, chips: Chips.for(query)) if query.too_short?(@definition.min_text_length)
@@ -309,6 +310,15 @@ module Querylane
     rescue => error
       saved_store_failed(error)
       nil
+    end
+
+    def delete_saved(id)
+      store = @definition.saved_searches
+      return :not_available unless store&.respond_to?(:delete)
+
+      store.delete(context: @context, id: id) ? :deleted : :not_available
+    rescue => error
+      saved_store_failed(error)
     end
 
     def saved_list

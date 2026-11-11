@@ -278,17 +278,28 @@
 .ql-saved-refusal { margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--ql-rule); font-size: 13px; color: var(--ql-text); }
 .ql-saved-heading { padding: 10px 16px 4px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; font-variant-caps: all-small-caps; color: var(--ql-muted); }
 .ql-saved-none { margin: 0; padding: 4px 16px 14px; color: var(--ql-muted); font-size: 13px; }
-.ql-saved-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; width: 100%; padding: 8px 16px; border: 0;
-  background: none; text-align: left; }
-.ql-saved-item:hover, .ql-saved-item:focus-visible { background: var(--ql-accent-soft); }
-.ql-saved-name { font-weight: 600; color: var(--ql-heading); }
-.ql-saved-query { grid-column: 1; font: 400 12px/18px var(--ql-font-mono); color: var(--ql-muted); }
+.ql-saved-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; margin: 2px 8px; padding-right: 4px; border-radius: 4px; }
+.ql-saved-row:hover, .ql-saved-row:focus-within { background: var(--ql-accent-soft); }
+.ql-saved-delete { min-width: 32px; height: 32px; padding: 4px; border: 0; border-radius: 4px; background: none; color: var(--ql-muted); }
+.ql-saved-delete:hover, .ql-saved-delete:focus-visible { color: var(--ql-error); }
+.ql-saved-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; width: 100%; padding: 8px; border: 0;
+  min-width: 0; background: none; text-align: left; }
+.ql-saved-name { overflow-wrap: anywhere; font-weight: 600; color: var(--ql-heading); }
+.ql-saved-query { grid-column: 1; overflow-wrap: anywhere; font: 400 12px/18px var(--ql-font-mono); color: var(--ql-muted); }
 .ql-saved-used { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 12px; color: var(--ql-faint); }
 .ql-notice { margin-top: 8px; font-size: 13px; color: var(--ql-text); }
 .ql-notice-refused, .ql-notice-store_failed { color: var(--ql-error); }
 @supports (anchor-name: --ql-saved) {
   .ql-box-saved { anchor-name: --ql-saved; }
   .ql-saved { position-anchor: --ql-saved; inset: auto; top: anchor(bottom); right: anchor(right); margin: 8px 0 0; }
+}
+@media (max-width: 600px) {
+  .ql-saved { left: 16px; right: 16px; width: auto; }
+  .ql-saved-head { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .ql-saved-head label { grid-column: 1 / -1; }
+  .ql-saved-head input { min-width: 0; }
+  .ql-saved-item { grid-template-columns: minmax(0, 1fr); }
+  .ql-saved-used { grid-column: 1; grid-row: auto; }
 }
 
 /* Searching, too short, reasons, unavailable, denied ------------------------ */

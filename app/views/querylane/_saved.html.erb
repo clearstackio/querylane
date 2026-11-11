@@ -3,6 +3,7 @@
     Name and Save belong to the search form; choosing one sends its id and the
     server rewrites the box. %>
 <div id="<%= id %>-saved" popover class="ql-saved">
+  <input type="hidden" name="delete_saved_page" value="<%= result.page %>" form="<%= id %>-form">
   <div class="ql-saved-head">
     <label for="<%= id %>-saved-name"><%= t("querylane.saved.title") %></label>
     <input type="text" id="<%= id %>-saved-name" name="saved_name" form="<%= id %>-form" maxlength="80" autocomplete="off"
@@ -23,10 +24,17 @@
     <p class="ql-saved-none"><%= t("querylane.saved.none") %></p>
   <% end %>
   <% result.saved_searches.each do |saved| %>
-    <button type="submit" form="<%= id %>-form" name="saved" value="<%= saved.id %>" class="ql-saved-item">
-      <span class="ql-saved-name"><%= saved.name %></span>
-      <code class="ql-saved-query"><%= saved.query %></code>
-      <% if saved.used_at %><span class="ql-saved-used"><%= t("querylane.saved.used", date: l(saved.used_at.to_date, format: :short)) %></span><% end %>
-    </button>
+    <div class="ql-saved-row" data-test="saved-search">
+      <button type="submit" form="<%= id %>-form" name="saved" value="<%= saved.id %>" class="ql-saved-item">
+        <span class="ql-saved-name"><%= saved.name %></span>
+        <code class="ql-saved-query"><%= saved.query %></code>
+        <% if saved.used_at %><span class="ql-saved-used"><%= t("querylane.saved.used", date: l(saved.used_at.to_date, format: :short)) %></span><% end %>
+      </button>
+      <button type="submit" form="<%= id %>-form" name="delete_saved" value="<%= saved.id %>" class="ql-saved-delete"
+              aria-label="<%= t("querylane.saved.delete_label", name: saved.name) %>" title="<%= t("querylane.saved.delete_label", name: saved.name) %>"
+              data-action="click->querylane--results#deleteSaved" data-confirm="<%= t("querylane.saved.delete_confirm") %>">
+        <%= respond_to?(:icon) ? icon("trash-2") : t("querylane.saved.delete") %>
+      </button>
+    </div>
   <% end %>
 </div>

@@ -81,6 +81,10 @@ export default class extends Controller {
     document.getElementById(event.target.dataset.querylaneEnter)?.click()
   }
 
+  deleteSaved(event) {
+    if (!window.confirm(event.currentTarget.dataset.confirm)) event.preventDefault()
+  }
+
   closePreview() {
     if (!this.hasPreviewTarget) return
     this.previewTarget.innerHTML = ""

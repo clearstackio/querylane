@@ -7,19 +7,33 @@ module Querylane
   # remove (chip index), as_words (chip index), clear, instead, widen, relax, compose (with
   # compose_submit), options, sort, page, per, revision.
   class Request
-    attr_reader :fix, :saved, :save_search, :saved_name, :group, :query, :toggle, :remove, :as_words, :clear, :instead, :widen, :relax, :compose, :options, :sort, :page, :per, :revision
+    attr_reader :fix, :saved, :delete_saved, :save_search, :saved_name, :group, :query, :toggle, :remove, :as_words, :clear, :instead, :widen, :relax, :compose, :options, :sort, :page, :per, :revision
 
     # @param params [ActionController::Parameters, Hash]
     # @param definition [Querylane::Definition]
     def self.from_params(params, definition:, config: Querylane.configuration)
-      values = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
-      values = values.transform_keys(&:to_s)
+      values = normalized_params(params)
+      values["page"] = values["delete_saved_page"] if values["delete_saved"].present? && values["delete_saved_page"].present?
       new(definition: definition, query: values[config.param_name.to_s], toggle: values["toggle"], remove: values["remove"],
         as_words: values["as_words"], clear: values["clear"],
         instead: values["instead"], widen: values["widen"], relax: values["relax"],
         compose: (values["compose"] if values["compose_submit"].present?), options: values["options"],
-        fix: values["fix"], group: values["group"], saved: values["saved"], save_search: values["save_search"], saved_name: values["saved_name"], sort: values["sort"], page: values["page"], per: values["per"], revision: values["revision"])
+        fix: values["fix"], group: values["group"], saved: values["saved"], delete_saved: values["delete_saved"], save_search: values["save_search"], saved_name: values["saved_name"], sort: values["sort"], page: values["page"], per: values["per"], revision: values["revision"])
     end
+
+    # The normalized, bounded deletion value used by both the request parser and POST guard.
+    #
+    # @param params [ActionController::Parameters, Hash]
+    # @return [String, nil]
+    def self.delete_saved_param(params)
+      normalized_params(params)["delete_saved"].to_s.presence&.first(64)
+    end
+
+    def self.normalized_params(params)
+      values = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.to_h
+      values.transform_keys(&:to_s)
+    end
+    private_class_method :normalized_params
 
     # instead: "chip.alternative" (use another reading of an interpreted term);
     # widen: a facet key (drop that facet's terms); relax: match fewer words;
@@ -27,9 +41,10 @@ module Querylane
     # compose: options-panel fields {"name" => "…", "policy" => "1 2", "is" => [...], "options" => [...]}
     # (applied only with compose_submit); options: open the options panel;
     # group: a GroupToken (all records of one group, see Search#related);
-    # saved: a saved search id to run; save_search with saved_name: save the query.
+    # saved: a saved search id to run; save_search with saved_name: save the query;
+    # delete_saved: an owned saved search id to delete without rewriting the query.
     def initialize(definition:, query: nil, toggle: nil, remove: nil, as_words: nil, clear: nil, instead: nil, widen: nil, relax: nil,
-      compose: nil, options: nil, fix: nil, group: nil, saved: nil, save_search: nil, saved_name: nil, sort: nil, page: nil, per: nil, revision: nil)
+      compose: nil, options: nil, fix: nil, group: nil, saved: nil, delete_saved: nil, save_search: nil, saved_name: nil, sort: nil, page: nil, per: nil, revision: nil)
       @query = query.to_s
       @clear = clear.present?
       @instead = instead.to_s.match(/\A(\d+)\.(\d+)\z/)&.captures&.map(&:to_i)
@@ -38,8 +53,9 @@ module Querylane
       @options = options.present?
       @group = group.presence
       @fix = fix.present?
-      @saved = saved.to_s.presence&.first(64)
-      @save_search = save_search.present?
+      @delete_saved = delete_saved.to_s.presence&.first(64)
+      @saved = saved.to_s.presence&.first(64) unless @delete_saved
+      @save_search = save_search.present? && !@delete_saved
       @saved_name = saved_name.to_s.squish.first(80)
       @compose = compose.is_a?(Hash) ? compose.to_h.transform_keys(&:to_s) : nil
       @toggle = parse_toggle(definition, toggle)

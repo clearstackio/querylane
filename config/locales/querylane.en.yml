@@ -44,6 +44,9 @@ en:
       title: "Save this search"
       name: "Name"
       save: "Save"
+      delete: "Delete"
+      delete_label: "Delete saved search %{name}"
+      delete_confirm: "Delete this saved search?"
       yours: "Your saved searches"
       none: "Nothing saved yet."
       used: "used %{date}"
@@ -53,6 +56,8 @@ en:
       refusal_alone: "Remove it first."
       notice:
         saved: "Search saved."
+        deleted: "Search deleted."
+        not_available: "Saved search is not available."
         refused: "This search was not saved: it holds a member ID, SSN or last four."
         store_failed: "Saved searches are unavailable right now."
     reasons:

@@ -280,3 +280,66 @@ RSpec.describe "The search endpoint", :meilisearch, type: :request do
     end
   end
 end
+
+RSpec.describe "Saved-search deletion endpoint", type: :request do
+  before { MemorySavedSearches.reset! }
+
+  it "refuses string-keyed host deletion params on GET even when GET queries are allowed" do
+    MemorySavedSearches.create(context: nil, name: "Keep", query: "team:ops")
+    controller = SearchesController.new
+    controller.set_request!(ActionDispatch::TestRequest.create)
+    controller.set_response!(ActionDispatch::TestResponse.new)
+    Querylane.configuration.allow_get_query = true
+
+    expect {
+      controller.querylane_search(DummySearch.definition, scope: Querylane::Scope.unrestricted(:staff),
+        params: {"delete_saved" => MemorySavedSearches.items.first.id})
+    }.to raise_error(ActionController::BadRequest)
+    expect(MemorySavedSearches.items.size).to eq(1)
+  end
+
+  it "refuses false-valued host deletion params on GET" do
+    MemorySavedSearches.items << MemorySavedSearches::Saved.new("false", "Keep", "team:ops", nil)
+    controller = SearchesController.new
+    controller.set_request!(ActionDispatch::TestRequest.create)
+    controller.set_response!(ActionDispatch::TestResponse.new)
+    Querylane.configuration.allow_get_query = true
+
+    expect {
+      controller.querylane_search(DummySearch.definition, scope: Querylane::Scope.unrestricted(:staff),
+        params: {delete_saved: false})
+    }.to raise_error(ActionController::BadRequest)
+    expect(MemorySavedSearches.items.map(&:id)).to eq(["false"])
+  end
+
+  it "deletes the selected entry without rewriting the active query" do
+    MemorySavedSearches.create(context: nil, name: "First", query: "team:ops")
+    MemorySavedSearches.create(context: nil, name: "Second", query: "team:ops")
+    first, second = MemorySavedSearches.items
+
+    post "/search", params: {delete_saved: first.id}, headers: {"Turbo-Frame" => "people-results"}
+
+    expect(response).to have_http_status(:ok)
+    expect(MemorySavedSearches.items).to eq([second])
+    expect(response.body).to include("Search deleted.")
+    expect(response.body).not_to include("querylane_set_query")
+  end
+
+  it "shows the empty state after deleting the final entry" do
+    MemorySavedSearches.create(context: nil, name: "Only", query: "team:ops")
+
+    post "/search", params: {delete_saved: MemorySavedSearches.items.first.id}
+
+    expect(MemorySavedSearches.items).to be_empty
+    expect(response.body).to include("Nothing saved yet.")
+  end
+
+  it "refuses deletion through GET without touching the store" do
+    MemorySavedSearches.create(context: nil, name: "Keep", query: "team:ops")
+
+    get "/", params: {delete_saved: MemorySavedSearches.items.first.id}
+
+    expect(response).to have_http_status(:bad_request)
+    expect(MemorySavedSearches.items.size).to eq(1)
+  end
+end

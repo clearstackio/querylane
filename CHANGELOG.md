@@ -11,6 +11,13 @@ change public APIs; each entry says how.
 
 ### Added
 
+- Confirmed per-entry saved-search deletion through the CSRF-protected POST
+  form. Stores implement `delete(context:, id:)` with a current-user-scoped
+  lookup and a boolean result. Deletion preserves the active query, sort and
+  page, updates the Saved star, and refuses denied scopes and GET mutations.
+  The saved-search popover stays inside narrow mobile viewports. Each entry
+  shares one hover/focus highlight with its inline delete icon, while Apply
+  and Delete keep separate, non-overlapping click targets.
 - `config.logger`: querylane logs why a search was unavailable (Meilisearch
   unreachable, timed out, or an API error such as a missing index). API
   errors are logged by code, type and HTTP status only, never their message,
@@ -72,6 +79,9 @@ change public APIs; each entry says how.
 
 ### Fixed
 
+- The saved-search POST-only guard and request parser share normalization for
+  symbol- and string-keyed params, including false-valued host params, even
+  when GET search queries are enabled.
 - Space on a record right after a new answer drew its rows opens the preview.
   The preview state was reset on `turbo:frame-render`, which Turbo fires a few
   repaints after the rows are in, so the preview's answer was dropped as if
