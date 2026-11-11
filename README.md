@@ -32,7 +32,7 @@ box is always what was searched.
 - Privacy defaults: queries travel by POST only, responses are `no-store`, query
   parameters are filtered from logs, group handles are encrypted, and saved
   searches refuse sensitive values.
-
+- Test Push
 ## Requirements
 
 | | Version |
