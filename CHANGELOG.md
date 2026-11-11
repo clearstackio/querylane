@@ -7,7 +7,7 @@ change public APIs; each entry says how.
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-11-10
+## [0.3.0] - 2026-11-11
 
 ### Added
 
@@ -18,6 +18,17 @@ change public APIs; each entry says how.
   The saved-search popover stays inside narrow mobile viewports. Each entry
   shares one hover/focus highlight with its inline delete icon, while Apply
   and Delete keep separate, non-overlapping click targets.
+
+### Fixed
+
+- The saved-search POST-only guard and request parser share normalization for
+  symbol- and string-keyed params, including false-valued host params, even
+  when GET search queries are enabled.
+
+## [0.2.0] - 2026-11-10
+
+### Added
+
 - `config.logger`: querylane logs why a search was unavailable (Meilisearch
   unreachable, timed out, or an API error such as a missing index). API
   errors are logged by code, type and HTTP status only, never their message,
@@ -79,9 +90,6 @@ change public APIs; each entry says how.
 
 ### Fixed
 
-- The saved-search POST-only guard and request parser share normalization for
-  symbol- and string-keyed params, including false-valued host params, even
-  when GET search queries are enabled.
 - Space on a record right after a new answer drew its rows opens the preview.
   The preview state was reset on `turbo:frame-render`, which Turbo fires a few
   repaints after the rows are in, so the preview's answer was dropped as if
@@ -161,6 +169,7 @@ The first release.
 - `search.querylane` and `saved_search_failed.querylane` instrumentation, without
   query text. The query parameter and `compose` are filtered from logs.
 
-[Unreleased]: https://github.com/clearstackio/querylane/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/clearstackio/querylane/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/clearstackio/querylane/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/clearstackio/querylane/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/clearstackio/querylane/releases/tag/v0.1.0
