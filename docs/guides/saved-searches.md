@@ -10,12 +10,16 @@ d.saved store: "SavedSearchStore"
 ```
 
 The box gets a **Saved** button that opens a popover with a name field, a Save
-button and the user's saved searches.
+button and the user's saved searches. Each saved entry also has a delete
+control, with a confirmation before it is removed.
+The entry shares one hover/focus highlight. Apply and Delete remain separate
+sibling buttons with non-overlapping click targets; the trash icon sits
+inside the row, not inside the Apply button.
 
 ## The store contract
 
 `store` is an object, or a class or module name resolved on every call. It
-responds to three methods. Each gets the request's `Querylane::Context` as
+responds to four methods. Each gets the request's `Querylane::Context` as
 `context:` so you can scope by user.
 
 | Method | Returns |
@@ -23,6 +27,7 @@ responds to three methods. Each gets the request's `Querylane::Context` as
 | `all(context:)` | The user's saved searches, in the order to show them. Each responds to `id`, `name`, `query` and `used_at` (a time or `nil`) |
 | `create(context:, name:, query:)` | Anything (ignored) |
 | `use(context:, id:)` | The saved search with that id, or `nil`. Record that it was used here |
+| `delete(context:, id:)` | `true` after deleting the current user's selected entry; `false` for a missing or unowned entry, or no current user. Scope the lookup before deleting, never trust the submitted id alone |
 
 The dummy app keeps them in memory:
 
@@ -37,16 +42,23 @@ module MemorySavedSearches
   def all(context:) = items.sort_by { |saved| saved.used_at || Time.at(0) }.reverse
 
   def create(context:, name:, query:)
-    items << Saved.new((items.size + 1).to_s, name, query, nil)
+    @next_id = (@next_id || 0) + 1
+    items << Saved.new(@next_id.to_s, name, query, nil)
   end
 
   def use(context:, id:)
     items.find { |saved| saved.id == id.to_s }&.tap { |saved| saved.used_at = Time.current }
   end
+
+  def delete(context:, id:)
+    saved = items.find { |item| item.id == id.to_s }
+    saved ? !!items.delete(saved) : false
+  end
 end
 ```
 
-A database-backed store is the same shape:
+The reference store is a shared in-memory list, not an authorization example.
+A database-backed store must scope deletion to the current user:
 
 ```ruby
 class SavedSearchStore
@@ -56,6 +68,16 @@ class SavedSearchStore
 
   def self.use(context:, id:)
     context.user.saved_searches.find_by(id: id)&.tap { |saved| saved.touch(:used_at) }
+  end
+
+  def self.delete(context:, id:)
+    return false unless context.user && id.to_s.match?(/\A[1-9]\d*\z/)
+
+    saved = context.user.saved_searches.find_by(id: id)
+    return false unless saved
+
+    saved.destroy!
+    true
   end
 end
 ```
@@ -77,6 +99,19 @@ querylane_search(PEOPLE, scope: scope, context: Querylane::Context.new(user: cur
 - The Saved star is filled while the box holds exactly the text of one of the
   user's saved searches.
 - After saving, a notice says "Search saved."
+- **Delete** asks "Delete this saved search?". Cancel changes nothing;
+  confirmation sends `delete_saved=<id>` and `delete_saved_page=<current page>`
+  through the existing POST form and its CSRF token. The host must authorize
+  access before calling `querylane_search`; a denied scope never calls deletion.
+- Successful deletion says "Search deleted." and refreshes the saved list.
+  The current query, sort and page remain unchanged. The star stays filled if
+  another saved entry has the same query. Deleting the final entry shows
+  "Nothing saved yet.".
+- Missing and unowned entries both say "Saved search is not available.".
+  GET deletion is rejected even when `allow_get_query` is enabled. Stores
+  without `delete` return the unavailable-entry notice rather than mutating data.
+- A host with an `icon` helper supplies `icon("trash-2")`; otherwise the
+  control reads "Delete". Its accessible label and tooltip identify the entry.
 
 ## What is refused
 

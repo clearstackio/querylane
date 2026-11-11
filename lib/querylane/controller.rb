@@ -63,7 +63,11 @@ module Querylane
     # in), and no response is cached. Only the URL's own query string is
     # checked: a host may pass a query it restored on the server (e.g. a
     # remembered search) to a GET.
-    def querylane_guard!(_params, config)
+    def querylane_guard!(params, config)
+      if Request.delete_saved_param(params) && !request.post?
+        raise ActionController::BadRequest, "Saved searches are deleted by POST"
+      end
+
       url = request.query_parameters
       carries_text = [config.param_name, :compose, :group].any? { |name| url[name.to_s].present? }
       if request.get? && carries_text && !config.allow_get_query
