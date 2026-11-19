@@ -11,7 +11,7 @@ Runs on pushes to `master`, pull requests, manual dispatch, and calls from
 `release.yml`. A newer run on the same ref cancels the older one.
 
 One job, `test`, on `ubuntu-latest`, for Ruby 3.3, 3.4 and 4.0 with `fail-fast`
-off. It has a Meilisearch 1.13 service container, so no example skips. Steps:
+off. It has a Meilisearch 1.57 service container, so no example skips. Steps:
 checkout, Ruby with `bundler-cache`, `npm ci`, Playwright's Chromium, wait for
 Meilisearch, then `bundle exec rake` (the suite and StandardRB). The Bundler cache
 is the only cache. FracturedJSON is not run in CI.

@@ -1,5 +1,5 @@
 # `rake` (the suite and StandardRB) on every supported Ruby, against
-# Meilisearch 1.13 and headless Chromium, so no example skips. release.yml
+# Meilisearch 1.57 and headless Chromium, so no example skips. release.yml
 # calls it before publishing.
 name: CI
 
@@ -27,7 +27,8 @@ jobs:
         ruby: ["3.3", "3.4", "4.0"]
     services:
       meilisearch:
-        image: getmeili/meilisearch:v1.13
+        # The release EBA runs, by tag and digest (EBA-20633).
+        image: getmeili/meilisearch:v1.57.0@sha256:91bf09897482c17205c8faeca8daa8d57999fb9de20d862763cdfa92ba4ec790
         env:
           MEILI_MASTER_KEY: ci-master-key-not-a-secret
           MEILI_NO_ANALYTICS: "true"
