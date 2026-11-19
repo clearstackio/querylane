@@ -7,6 +7,12 @@ change public APIs; each entry says how.
 
 ## [Unreleased]
 
+### Security
+
+- Development pins only (no runtime change): Ruby 3.3.14, the 3.3 security
+  release for the Regexp/String advisories; Puma 8.0.3 for the dummy app;
+  Node 22.23.5 instead of the floating `22`.
+
 ## [0.3.0] - 2026-11-11
 
 ### Added
