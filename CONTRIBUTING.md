@@ -74,7 +74,7 @@ also the example the guides quote.
 - **Changelog:** add a line under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md)
   for anything a host would notice.
 - **CI:** GitHub Actions ([design](docs/design/ci.md), [operations](docs/ops/ci.md)): `rake` on Ruby 3.3, 3.4
-  and 4.0 against Meilisearch 1.13 and headless Chromium. Actions are pinned to
+  and 4.0 against Meilisearch 1.57 and headless Chromium. Actions are pinned to
   commit SHAs. FracturedJSON is not run in CI; run `bin/lint` before pushing.
 - **Security:** no secrets in the repo; see [SECURITY.md](SECURITY.md).
 
